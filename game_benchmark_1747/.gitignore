@@ -1,0 +1,7 @@
+client
+server
+*.o
+*.log
+.project
+.cproject
+
