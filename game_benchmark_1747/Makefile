@@ -20,7 +20,7 @@ CXXFLAGS := `sdl-config --cflags` -isystem /usr/include/SDL -isystem /usr/includ
 LDFLAGS := `sdl-config --libs` -lSDL_net -lm
 ## -lz is also needed when compiling with -D__COMPRESSED_MESSAGES__
 LDFLAGS_CLIENT = $(LDFLAGS) -lGL -lGLU
-LDFLAGS_SERVER = $(LDFLAGS)
+LDFLAGS_SERVER = $(LDFLAGS) -ldl -llttng-ust
 LDFLAGS_MASTER = $(LDFLAGS)
 
 ## Source and binary files
@@ -37,11 +37,12 @@ GRAPHICS_SOURCES = $(wildcard $(SOURCE_DIR)/graphics/*.cpp) \
 	$(wildcard $(SOURCE_DIR)/graphics/3ds/*.cpp) \
 	$(wildcard $(SOURCE_DIR)/graphics/texture/*.cpp) \
 	$(wildcard $(SOURCE_DIR)/graphics/font/*.cpp)
+TRACING_SOURCES  = $(wildcard $(SOURCE_DIR)/tracing/*.c)
 
 ## SERVER
 SERVER_DIR  = $(SOURCE_DIR)/server
 SERVER_SRCS_CPP = $(SHARED_SOURCES) $(GAME_SOURCES_CPP) $(COMM_SOURCES) $(wildcard $(SERVER_DIR)/*.cpp)
-SERVER_SRCS_C   = $(GAME_SOURCES_C)
+SERVER_SRCS_C   = $(GAME_SOURCES_C) $(TRACING_SOURCES)
 SERVER_OBJS = $(patsubst $(SOURCE_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SERVER_SRCS_CPP)) \
               $(patsubst $(SOURCE_DIR)/%.c,$(BUILD_DIR)/%.o,$(SERVER_SRCS_C))
 
@@ -91,6 +92,7 @@ $(BUILD_DIR):
 	@mkdir $(BUILD_DIR)/graphics/texture
 	@mkdir $(BUILD_DIR)/graphics/font
 	@mkdir $(BUILD_DIR)/master
+	@mkdir $(BUILD_DIR)/tracing
 
 ## Build client and server
 
