@@ -294,6 +294,11 @@ void WorldMap::reassignRegion(Region* r, int new_layout) {
 }
 
 void WorldMap::balance_lightest() {
+  for (int x = 0; x < n_regs.x; ++x) {
+    for (int y = 0; y < n_regs.y; ++y) {
+
+    }
+  }
 }
 
 void WorldMap::balance_spread() {

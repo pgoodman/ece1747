@@ -149,6 +149,10 @@ void WorldUpdateModule::run() {
     avg_wui = (avg_wui < 0) ? wui : (avg_wui * 0.95 + (double) wui * 0.05);
     start_time = SDL_GetTicks();
 
+    bool has_sla_violation = false;
+    double num_sla_violations = 0.0;
+    double max_num_sla_violations = static_cast<double>(bucket->size()) * 0.9;
+
     /* send updates to clients (map state) */
     bucket->start();
     while ((p = bucket->next()) != NULL) {
@@ -170,7 +174,18 @@ void WorldUpdateModule::run() {
             t_id);
       if (sd->send_end_quest)
         comm->send(new Message(MESSAGE_SC_QUEST_OVER, t_id, p->address), t_id);
+
+      // Count the number of players for which there is an SLA violation, i.e.
+      // the time it taks to process a request and respond exceeds the
+      // regular update interval.
+      if (has_sla_violation
+          || (has_sla_violation = ((SDL_GetTicks() - start_time) + wui) >
+                                  sd->regular_update_interval)) {
+        ++num_sla_violations;
+      }
     }
+
+    sd->has_sla_violation[t_id] = num_sla_violations > max_num_sla_violations;
 
     SDL_WaitBarrier(barrier);
     rui = SDL_GetTicks() - start_time;
@@ -186,40 +201,40 @@ void WorldUpdateModule::run() {
 
 /* generate a new player, send an ok message */
 void WorldUpdateModule::handleClientJoinRequest(Player* p, IPaddress addr) {
-  if (p) {
-    comm->send(new Message(MESSAGE_SC_NOK_JOIN, 0, p->address), t_id);
-    printf(
-        "[WARNING] Player already on server '%s' (send not ok to join message)\n",
-        p->name);
-    return;
-  }
+if (p) {
+  comm->send(new Message(MESSAGE_SC_NOK_JOIN, 0, p->address), t_id);
+  printf(
+      "[WARNING] Player already on server '%s' (send not ok to join message)\n",
+      p->name);
+  return;
+}
 
-  p = sd->wm.addPlayer(addr);
+p = sd->wm.addPlayer(addr);
 
-  MessageOkJoin *mok = new MessageOkJoin(t_id, p->address, p->name, p->pos,
-                                         sd->wm.size);
-  comm->send((Message*) mok, t_id);
+MessageOkJoin *mok = new MessageOkJoin(t_id, p->address, p->name, p->pos,
+                                       sd->wm.size);
+comm->send((Message*) mok, t_id);
 
-  if (sd->display_user_on_off)
-    printf("New player: %s (%d,%d)\n", p->name, p->pos.x, p->pos.y);
+if (sd->display_user_on_off)
+  printf("New player: %s (%d,%d)\n", p->name, p->pos.x, p->pos.y);
 }
 
 /* remove client from WorldMap and send an ok_leave message */
 void WorldUpdateModule::handleClientLeaveRequest(Player* p) {
-  assert(p);
-  sd->wm.removePlayer(p);
+assert(p);
+sd->wm.removePlayer(p);
 
-  Message *mok = new Message(MESSAGE_SC_OK_LEAVE, t_id, p->address);
-  comm->send(mok, t_id);
+Message *mok = new Message(MESSAGE_SC_OK_LEAVE, t_id, p->address);
+comm->send(mok, t_id);
 
-  if (sd->display_user_on_off)
-    printf("Removing player %s\n", p->name);
-  delete p;
+if (sd->display_user_on_off)
+  printf("Removing player %s\n", p->name);
+delete p;
 }
 
 void WorldUpdateModule::handle_move(Player* p, int _dir) {
-  assert(p);
-  p->dir = _dir;
-  sd->wm.movePlayer(p);
+assert(p);
+p->dir = _dir;
+sd->wm.movePlayer(p);
 }
 
