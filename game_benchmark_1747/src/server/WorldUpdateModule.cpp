@@ -25,7 +25,7 @@
  ***************************************************************************************************/
 
 WorldUpdateModule::WorldUpdateModule(int id, MessageModule *_comm,
-                                     SDL_barrier *_barr) {
+SDL_barrier *_barr) {
   assert(id >= 0 && id < sd->num_threads && _comm && _barr);
   t_id = id;
   barrier = _barr;

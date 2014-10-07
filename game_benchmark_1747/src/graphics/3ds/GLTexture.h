@@ -44,20 +44,19 @@
 #include <GL/gl.h>			// Header File For The OpenGL32 Library
 #include <GL/glu.h>			// Header File For The GLu32 Library
 
-class GLTexture
-{
-public:
-	char *texturename;								// The textures name
-	unsigned int texture[1];						// OpenGL's number for the texture
-	int width;										// Texture's width
-	int height;										// Texture's height
-	void Use();										// Binds the texture for use
-	void Finish();
-	void BuildColorTexture(unsigned char r, unsigned char g, unsigned char b);	// Sometimes we want a texture of uniform color
-	void LoadBMP(char *name);				// Load a bitmap
-	void Load(char *name);							// Load the texture
-	GLTexture();									// Constructor
-	virtual ~GLTexture();							// Destructor
+class GLTexture {
+ public:
+  char *texturename;								// The textures name
+  unsigned int texture[1];						// OpenGL's number for the texture
+  int width;										// Texture's width
+  int height;										// Texture's height
+  void Use();										// Binds the texture for use
+  void Finish();
+  void BuildColorTexture(unsigned char r, unsigned char g, unsigned char b);	// Sometimes we want a texture of uniform color
+  void LoadBMP(char *name);				// Load a bitmap
+  void Load(char *name);							// Load the texture
+  GLTexture();									// Constructor
+  virtual ~GLTexture();							// Destructor
 
 };
 

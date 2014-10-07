@@ -220,8 +220,8 @@ void WorldMap::updatePlayer(Player* p, Serializator* s) {
   /* determine the region visible to the player */
   pos1.x = max(p->pos.x - MAX_CLIENT_VIEW, 0);
   pos1.y = max(p->pos.y - MAX_CLIENT_VIEW, 0);
-  pos2.x = min(p->pos.x + MAX_CLIENT_VIEW+1, size.x);
-  pos2.y = min(p->pos.y + MAX_CLIENT_VIEW+1, size.y);
+  pos2.x = min(p->pos.x + MAX_CLIENT_VIEW + 1, size.x);
+  pos2.y = min(p->pos.y + MAX_CLIENT_VIEW + 1, size.y);
 
   /* pack data: position, attributes */
   *s << p->pos.x;

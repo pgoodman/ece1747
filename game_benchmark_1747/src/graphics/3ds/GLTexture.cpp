@@ -50,67 +50,60 @@
 
 #include "../texture/texture.h"
 
-
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-GLTexture::GLTexture()
-{
+GLTexture::GLTexture() {
 
 }
 
-GLTexture::~GLTexture()
-{
+GLTexture::~GLTexture() {
 
 }
 
-void GLTexture::Load(char *name)
-{
-	texturename = strdup(name);
-	LoadBMP(texturename);
+void GLTexture::Load(char *name) {
+  texturename = strdup(name);
+  LoadBMP(texturename);
 }
 
-void GLTexture::Use()
-{
-	glEnable(GL_TEXTURE_2D);								// Enable texture mapping
-	glBindTexture(GL_TEXTURE_2D, texture[0]);				// Bind the texture as the current one
+void GLTexture::Use() {
+  glEnable(GL_TEXTURE_2D);								// Enable texture mapping
+  glBindTexture(GL_TEXTURE_2D, texture[0]);	// Bind the texture as the current one
 }
 
-void GLTexture::Finish()
-{
-	glDisable(GL_TEXTURE_2D);
+void GLTexture::Finish() {
+  glDisable(GL_TEXTURE_2D);
 }
 
-void GLTexture::LoadBMP(char *name)
-{
-	texture[0] = LoadBitmap(name, &width, &height);
+void GLTexture::LoadBMP(char *name) {
+  texture[0] = LoadBitmap(name, &width, &height);
 }
 
-void GLTexture::BuildColorTexture(unsigned char r, unsigned char g, unsigned char b)
-{
-	unsigned char data[12];	// a 2x2 texture at 24 bits
+void GLTexture::BuildColorTexture(unsigned char r, unsigned char g,
+                                  unsigned char b) {
+  unsigned char data[12];  // a 2x2 texture at 24 bits
 
-	// Store the data
-	for(int i = 0; i < 12; i += 3)
-	{
-		data[i] = r;
-		data[i+1] = g;
-		data[i+2] = b;
-	}
+  // Store the data
+  for (int i = 0; i < 12; i += 3) {
+    data[i] = r;
+    data[i + 1] = g;
+    data[i + 2] = b;
+  }
 
-	// Generate the OpenGL texture id
-	glGenTextures(1, &texture[0]);
+  // Generate the OpenGL texture id
+  glGenTextures(1, &texture[0]);
 
-	// Bind this texture to its id
-	glBindTexture(GL_TEXTURE_2D, texture[0]);
+  // Bind this texture to its id
+  glBindTexture(GL_TEXTURE_2D, texture[0]);
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-	// Use mipmapping filter
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+  // Use mipmapping filter
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                  GL_LINEAR_MIPMAP_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	// Generate the texture
-	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, 2, 2, GL_RGB, GL_UNSIGNED_BYTE, data);
+  // Generate the texture
+  gluBuild2DMipmaps(GL_TEXTURE_2D, 3, 2, 2, GL_RGB, GL_UNSIGNED_BYTE, data);
 }

@@ -1,29 +1,28 @@
-
 /***************************************************************************************************
-*
-* SUBJECT:
-*    A Benckmark for Massive Multiplayer Online Games
-*    Game Server and Client
-*
-* AUTHOR:
-*    Mihai Paslariu
-*    Politehnica University of Bucharest, Romania
-*    mihplaesu@yahoo.com
-*
-* TIME AND PLACE:
-*    University of Toronto, Toronto, Canada
-*    March - August 2007
-*
-***************************************************************************************************/
+ *
+ * SUBJECT:
+ *    A Benckmark for Massive Multiplayer Online Games
+ *    Game Server and Client
+ *
+ * AUTHOR:
+ *    Mihai Paslariu
+ *    Politehnica University of Bucharest, Romania
+ *    mihplaesu@yahoo.com
+ *
+ * TIME AND PLACE:
+ *    University of Toronto, Toronto, Canada
+ *    March - August 2007
+ *
+ ***************************************************************************************************/
 
 #ifndef __GENERAL_H
 #define __GENERAL_H
 
 /*
-CONVENTIONS:
-- critical errors are thrown and caught in main, minor errors are return by functions
-or displayed as warnings
-*/
+ CONVENTIONS:
+ - critical errors are thrown and caught in main, minor errors are return by functions
+ or displayed as warnings
+ */
 
 /* standard headers */
 #include <stdio.h>
@@ -56,12 +55,16 @@ using namespace std;
 /* Abstract classes */
 /***********************************************************************/
 
-class Module
-{
-public:
-	int f_id;
-	virtual ~Module() {};	/* to prevent a warning from g++ */
-	virtual void run() {};	/* all modules must have a run function */
+class Module {
+ public:
+  int f_id;
+  virtual ~Module() {
+  }
+  ; /* to prevent a warning from g++ */
+  virtual void run() {
+  }
+  ;
+  /* all modules must have a run function */
 };
 
 int module_thread(void *data);

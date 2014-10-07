@@ -1,20 +1,16 @@
-
 #ifndef UTIL_H
 #define UTIL_H
 
-struct PUNCT2D
-{
-	float x,y;
+struct PUNCT2D {
+  float x, y;
 };
 
-struct PUNCT3D
-{
-	float x,y,z;
+struct PUNCT3D {
+  float x, y, z;
 };
 
-struct TRIUNGHI
-{
-	int a,b,c;
+struct TRIUNGHI {
+  int a, b, c;
 };
 
 #ifndef M_PI

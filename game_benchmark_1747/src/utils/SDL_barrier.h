@@ -1,20 +1,19 @@
-
 /***************************************************************************************************
-*
-* SUBJECT:
-*    A Benckmark for Massive Multiplayer Online Games
-*    Game Server and Client
-*
-* AUTHOR:
-*    Mihai Paslariu
-*    Politehnica University of Bucharest, Bucharest, Romania
-*    mihplaesu@yahoo.com
-*
-* TIME AND PLACE:
-*    University of Toronto, Toronto, Canada
-*    March - August 2007
-*
-***************************************************************************************************/
+ *
+ * SUBJECT:
+ *    A Benckmark for Massive Multiplayer Online Games
+ *    Game Server and Client
+ *
+ * AUTHOR:
+ *    Mihai Paslariu
+ *    Politehnica University of Bucharest, Bucharest, Romania
+ *    mihplaesu@yahoo.com
+ *
+ * TIME AND PLACE:
+ *    University of Toronto, Toronto, Canada
+ *    March - August 2007
+ *
+ ***************************************************************************************************/
 
 #ifndef __BARRIER_H
 #define __BARRIER_H
@@ -23,12 +22,11 @@
 
 /* from "The Little Book of Semaphores" - Allen B. Downey */
 
-typedef struct _SDL_barrier
-{
-	int n,count;
-	SDL_mutex *mutex;
-	SDL_semaphore *turnstile;
-	SDL_semaphore *turnstile2;
+typedef struct _SDL_barrier {
+  int n, count;
+  SDL_mutex *mutex;
+  SDL_semaphore *turnstile;
+  SDL_semaphore *turnstile2;
 };
 #define SDL_barrier struct _SDL_barrier
 
