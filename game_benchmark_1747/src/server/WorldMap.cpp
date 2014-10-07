@@ -1,9 +1,9 @@
 #include "ServerData.h"
 
 #include "WorldMap.h"
-
-#define TRACEPOINT_DEFINE
-#include "../tracing/trace.h"
+#include <lttng/tracef.h>
+//#define TRACEPOINT_DEFINE
+//#include "tracing/trace.h"
 void WorldMap::generate() {
   int i, j;
   Vector2D pos;
@@ -32,7 +32,8 @@ void WorldMap::generate() {
       initRegion(&regions[i][j], pos, regmin,
                  (i * n_regs.y + j) / regions_per_thread, objs, pls);
   }
-  tracepoint(trace_load_balacing, tp_name_1_name, i);
+ // tracepoint(trace_load_balacing, tp_name_1_int, i);
+ tracef("%d\n", i);
   /* generate objects */
   GameObject *o;
   Region* r;
