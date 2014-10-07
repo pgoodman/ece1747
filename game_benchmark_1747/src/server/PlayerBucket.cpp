@@ -48,7 +48,7 @@ Player* PlayerBucket::find(IPaddress addr) {
 
   SDL_LockMutex(lock);
 
-  PlayerDicIteratorresult = dic.find(addr);
+  PlayerDicIterator result = dic.find(addr);
   if (result != dic.end())
     p = result->second;
 
@@ -60,7 +60,7 @@ Player* PlayerBucket::find(IPaddress addr) {
 bool PlayerBucket::erase(IPaddress addr) {
   int res = false;
   SDL_LockMutex(lock);
-  PlayerDicIteratorresult = dic.find(addr);
+  PlayerDicIterator result = dic.find(addr);
   if (result != dic.end()) {
     if (it == result)
       it++;

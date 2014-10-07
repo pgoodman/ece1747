@@ -50,7 +50,7 @@ struct NodeComparator {
 /* set of nodes ( used instead of set<Node*> for convenience ) */
 class NodeSet {
  private:
-  StlNodeSetnset;
+  StlNodeSet nset;
 
 public:
   void add(Node *nou);

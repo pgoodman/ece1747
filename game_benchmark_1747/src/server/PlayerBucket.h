@@ -43,7 +43,7 @@ using namespace std;
 class PlayerBucket {
  protected:
   SDL_mutex *lock; /* synchronize access to this collection */
-  PlayerDicTypedic; /* map with IP as key and pointer to player as value */
+  PlayerDicType dic; /* map with IP as key and pointer to player as value */
 
   /* members for iterating */
   PlayerDicIterator it;

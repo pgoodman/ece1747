@@ -22,7 +22,7 @@
 
 /* from "The Little Book of Semaphores" - Allen B. Downey */
 
-typedef struct _SDL_barrier {
+struct _SDL_barrier {
   int n, count;
   SDL_mutex *mutex;
   SDL_semaphore *turnstile;

@@ -414,9 +414,10 @@ void ClientActionModule::handle_REGULAR_UPDATE(Message *message)
     }
     if (client_data->map[xp][yp].type == CELL_EMPTY)
       client_data->map[xp][yp].type = cell_type;
-    if (client_data->map[xp][yp].type == CELL_OBJECT && cell_type == CELL_PLAYER
-        || client_data->map[xp][yp].type == CELL_PLAYER
-            && cell_type == CELL_OBJECT)
+    if ((client_data->map[xp][yp].type == CELL_OBJECT &&
+         cell_type == CELL_PLAYER) ||
+        (client_data->map[xp][yp].type == CELL_PLAYER &&
+         cell_type == CELL_OBJECT))
       client_data->map[xp][yp].type = CELL_OBJ_PLAYER;
 
     *s >> cell_type;
