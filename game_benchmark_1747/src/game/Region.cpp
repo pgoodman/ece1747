@@ -5,7 +5,7 @@ void initRegion(Region* r, Vector2D p, Vector2D sz, int _layout,
   r->pos = p;
   r->size = sz;
 
-  r->layout = _layout;
+  r->t_id = _layout;
 
   r->objects = objs;
   r->players = pls;
@@ -56,10 +56,12 @@ bool Region_movePlayer(Region* r_old, Region* r_new, Player* p,
                        Vector2D n_pos) {
   bool res = false;
   if (*(int*) r_old < *(int*) r_new) {
-    SDL_LockMutex(r_old->mutex);SDL_LockMutex(r_new->mutex);
+    SDL_LockMutex(r_old->mutex);
+    SDL_LockMutex(r_new->mutex);
   }
   if (*(int*) r_old > *(int*) r_new) {
-    SDL_LockMutex(r_new->mutex);SDL_LockMutex(r_old->mutex);
+    SDL_LockMutex(r_new->mutex);
+    SDL_LockMutex(r_old->mutex);
   }
   if (*(int*) r_old == *(int*) r_new) {
     SDL_LockMutex(r_old->mutex);

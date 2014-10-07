@@ -26,7 +26,8 @@
 class WorldUpdateModule : public Module {
  protected:
   /* general data */
-  int t_id;SDL_barrier *barrier;
+  int t_id;
+  SDL_barrier *barrier;
 
   MessageModule* comm;
 

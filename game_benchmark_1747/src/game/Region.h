@@ -13,7 +13,7 @@ typedef struct {
   Vector2D pos;			// coordinates of the upper left corner of the region
   Vector2D size;			// size of the region
 
-  int layout;	// = thread_id of the thread handling the players from this region
+  int t_id;	// = thread_id of the thread handling the players from this region
 
   list<Player*> players;
   int n_pls;

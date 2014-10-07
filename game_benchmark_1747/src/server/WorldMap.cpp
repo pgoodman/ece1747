@@ -32,8 +32,9 @@ void WorldMap::generate() {
       initRegion(&regions[i][j], pos, regmin,
                  (i * n_regs.y + j) / regions_per_thread, objs, pls);
   }
- // tracepoint(trace_load_balacing, tp_name_1_int, i);
- tracef("%d\n", i);
+
+  tracef("%d\n", i);
+
   /* generate objects */
   GameObject *o;
   Region* r;
@@ -81,7 +82,7 @@ Player* WorldMap::addPlayer(IPaddress a) {
       break;
   }
 
-  players[r->layout].insert(p);
+  players[r->t_id].insert(p);
 
   return p;
 }
@@ -100,7 +101,7 @@ Player* WorldMap::findPlayer(IPaddress a, int t_id) {
 void WorldMap::removePlayer(Player* p) {
   Region* r = getRegionByLocation(p->pos);
   Region_removePlayer(r, p);
-  players[r->layout].erase(p);
+  players[r->t_id].erase(p);
 }
 
 void WorldMap::movePlayer(Player* p) {
@@ -127,9 +128,9 @@ void WorldMap::movePlayer(Player* p) {
   assert(r_old && r_new);
 
   bool res = Region_movePlayer(r_old, r_new, p, n_pos);
-  if (r_old->layout != r_new->layout && res) {
-    players[r_old->layout].erase(p);
-    players[r_new->layout].insert(p);
+  if (r_old->t_id != r_new->t_id && res) {
+    players[r_old->t_id].erase(p);
+    players[r_new->t_id].insert(p);
   }
 }
 
@@ -286,10 +287,10 @@ void WorldMap::reassignRegion(Region* r, int new_layout) {
   list<Player*>::iterator pi;			//iterator for players
 
   for (pi = r->players.begin(); pi != r->players.end(); pi++) {
-    players[r->layout].erase(*pi);
+    players[r->t_id].erase(*pi);
     players[new_layout].insert(*pi);
   }
-  r->layout = new_layout;
+  r->t_id = new_layout;
 }
 
 void WorldMap::balance_lightest() {
