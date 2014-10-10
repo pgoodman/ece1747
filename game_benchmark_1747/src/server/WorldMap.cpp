@@ -1,5 +1,5 @@
+#include <iostream>
 #include "ServerData.h"
-
 #include "WorldMap.h"
 #include <lttng/tracef.h>
 //#define TRACEPOINT_DEFINE
@@ -271,6 +271,26 @@ Region* WorldMap::getRegionByLocation(Vector2D loc) {
   return &regions[loc.x / regmin.x][loc.y / regmin.y];
 }
 
+void WorldMap::printRegions()
+{
+  cout<<" X\t";
+  for(int i=0; i < n_regs.x; ++i)
+  {
+    cout<<i<<"\t";
+  }
+  cout<<endl<<"Y"<<endl;
+
+  for(int j=0; j < n_regs.y; ++j)
+  {
+    cout<<j<<"\t";
+    for(int i=0; i <n_regs.x; ++i)
+    {
+      cout<< regions[i][j].t_id <<"\t";
+    }
+    cout<<endl;
+  }
+
+}
 void WorldMap::regenerateObjects() {
   Region_regenerateObjects(&regions[rand() % n_regs.x][rand() % n_regs.y],
                            max_res);
@@ -294,10 +314,9 @@ void WorldMap::reassignRegion(Region* r, int new_layout) {
 }
 
 void WorldMap::balance_lightest() {
-  for (int x = 0; x < n_regs.x; ++x) {
-    for (int y = 0; y < n_regs.y; ++y) {
-
-    }
+  printf("----\n");
+  for (int x = 0; x <sd->num_threads; ++x) {
+    printf("sla_violation[%d]: %d / %d\n",x,sd->num_sla_violations[x], sd->wm.players[x].size());
   }
 }
 
