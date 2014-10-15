@@ -15,6 +15,7 @@
  *
  ***************************************************************************************************/
 
+#include <iostream>
 #include "ServerData.h"
 #include "WorldUpdateModule.h"
 
@@ -124,14 +125,19 @@ void WorldUpdateModule::run() {
       sd->send_start_quest = 0;
       sd->send_end_quest = 0;
       if (start_time > start_quest) {
+        sd->wm.printRegions();
         start_quest = end_quest + sd->quest_between;
         sd->quest_pos.x = (rand() % sd->wm.n_regs.x) * CLIENT_MATRIX_SIZE
             + MAX_CLIENT_VIEW;
         sd->quest_pos.y = (rand() % sd->wm.n_regs.y) * CLIENT_MATRIX_SIZE
             + MAX_CLIENT_VIEW;
         sd->send_start_quest = 1;
-        if (sd->display_quests)
-          printf("New quest %d,%d\n", sd->quest_pos.x, sd->quest_pos.y);
+        if (sd->display_quests){
+          cout<<"New quest "<<sd->quest_pos.x<<","<<sd->quest_pos.y
+              <<" (handled by tid:"
+              <<sd->wm.getRegionByLocation(sd->quest_pos)->t_id
+              <<")"<<endl;
+        }
       }
       if (start_time > end_quest) {
         sd->wm.rewardPlayers(sd->quest_pos);
@@ -185,8 +191,8 @@ void WorldUpdateModule::run() {
       }
     }
 
-    sd->has_sla_violation[t_id] = num_sla_violations > max_num_sla_violations;
-
+    //sd->has_sla_violation[t_id] = num_sla_violations > max_num_sla_violations;
+    sd->num_sla_violations[t_id] = num_sla_violations;
     SDL_WaitBarrier(barrier);
     rui = SDL_GetTicks() - start_time;
     avg_rui = (avg_rui < 0) ? rui : (avg_rui * 0.95 + (double) rui * 0.05);

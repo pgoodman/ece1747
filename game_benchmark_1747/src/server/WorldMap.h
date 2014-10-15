@@ -40,7 +40,7 @@ class WorldMap {
   void updatePlayer(Player* p, Serializator* s);
 
   Region* getRegionByLocation(Vector2D loc);
-
+  void printRegions();
   void balance();
   void balance_lightest();
   void balance_spread();

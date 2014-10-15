@@ -38,6 +38,8 @@ void ServerData::dataFromConfigurator(Configurator &conf) {
   this->overloaded_level = conf.getFloatAttribute("server.overloaded_level");
   this->light_level = conf.getFloatAttribute("server.light_level");
 
+  this->num_sla_violations.reserve(this->num_threads);
+
   if (this->load_balance_limit <= 0) {
     printf(
         "[WARNING] Config file error: load_balance_limit must be greater than 0. Default value 10 used\n");
@@ -103,7 +105,6 @@ void ServerData::dataFromConfigurator(Configurator &conf) {
 
 ServerData::ServerData(char* conf_file) {
   Configurator conf;
-
   if (!conf.addFile(conf_file))
     throw "Invalid configuration file";
   dataFromConfigurator(conf);

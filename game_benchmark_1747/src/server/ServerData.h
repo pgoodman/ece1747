@@ -18,6 +18,8 @@
 #ifndef __SERVERDATA_H
 #define __SERVERDATA_H
 
+#include <vector>
+
 #include "../General.h"
 #include "../utils/Configurator.h"
 
@@ -38,7 +40,7 @@ struct ServerData {
   double overloaded_level; /* overloaded and light server level */
   double light_level;
   Uint32 load_balance_limit;
-
+  std::vector<int> num_sla_violations;
   /* stats */
   int stats_interval;
 
