@@ -58,9 +58,14 @@ CriticalSection AcquireLockSet(MergeLock **begin, MergeLock **end) {
     prev = min;
     pthread_mutex_lock(&(min->mutex));
 
+    // This is the first time locking this MergeLock since splitting.
+    if (min->generation != g_generation) {
+      min->generation = g_generation;  // Fix the generation number.
+      ++begin;  // We don't need to add anything new to the set.
+
     // The parent pointer of `min` was changed by a concurrently executing
     // thread since the invocation of `SortIds`.
-    if (min != min->parent) {
+    } else if (min != min->parent) {
       *begin = min->parent->Id();  // Add the parent of `min` to the set.
       end = SortIds(begin, end);  // Re-sort an calculate the max.
       max_ptr = end - 1;
@@ -72,7 +77,6 @@ CriticalSection AcquireLockSet(MergeLock **begin, MergeLock **end) {
 
     assert(min <= max);
     min->parent = max;  // Merge the lock.
-    min->generation = g_generation;  // Fix the generation number.
 
     pthread_mutex_unlock(&(min->mutex));
   }
