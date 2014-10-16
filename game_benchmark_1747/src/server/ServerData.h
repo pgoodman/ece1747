@@ -40,7 +40,9 @@ struct ServerData {
   double overloaded_level; /* overloaded and light server level */
   double light_level;
   Uint32 load_balance_limit;
-  std::vector<int> num_sla_violations;
+  vector<int> num_sla_violations;
+  vector<int> time_processing_rqst;
+  vector<int> num_requests_recvd;
   /* stats */
   int stats_interval;
 

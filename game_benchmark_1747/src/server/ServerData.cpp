@@ -45,15 +45,15 @@ void ServerData::dataFromConfigurator(Configurator &conf) {
         "[WARNING] Config file error: load_balance_limit must be greater than 0. Default value 10 used\n");
     this->overloaded_level = 10 * 1000;
   }
-  if (this->overloaded_level <= 1.0) {
+  if (this->overloaded_level > 1.0) {
     printf(
-        "[WARNING] Config file error: overloaded_level must be greater than 1. Default value 1.2 used\n");
-    this->overloaded_level = 1.2;
+        "[WARNING] Config file error: overloaded_level must be less of equal to 1. Default value 0.8 used\n");
+    this->overloaded_level = 0.8;
   }
-  if (this->light_level <= 0 || this->light_level > this->overloaded_level) {
+  if (this->light_level < 0 || this->light_level > this->overloaded_level) {
     printf(
-        "[WARNING] Config file error: light_level must be greater than 0 and smaller than overloaded_level. Default value 1.0 used\n");
-    this->light_level = 1.0;
+        "[WARNING] Config file error: light_level must be greater or equal to 0 and smaller than overloaded_level. Default value 0.2 used\n");
+    this->light_level = 0.2;
   }
 
   /* Map and region size */

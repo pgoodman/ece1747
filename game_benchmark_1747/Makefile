@@ -37,7 +37,8 @@ GRAPHICS_SOURCES = $(wildcard $(SOURCE_DIR)/graphics/*.cpp) \
 	$(wildcard $(SOURCE_DIR)/graphics/3ds/*.cpp) \
 	$(wildcard $(SOURCE_DIR)/graphics/texture/*.cpp) \
 	$(wildcard $(SOURCE_DIR)/graphics/font/*.cpp)
-TRACING_SOURCES  = $(wildcard $(SOURCE_DIR)/tracing/*.c)
+TRACING_SOURCES  = $(wildcard $(SOURCE_DIR)/tracing/*.c) $(wildcard $(SOURCE_DIR)/tracing/*.h)
+
 
 ## SERVER
 SERVER_DIR  = $(SOURCE_DIR)/server

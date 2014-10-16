@@ -1,5 +1,5 @@
 #undef TRACEPOINT_PROVIDER
-#define TRACEPOINT_PROVIDER trace_load_balancing
+#define TRACEPOINT_PROVIDER trace_LB
 
 #undef TRACEPOINT_INCLUDE
 #define TRACEPOINT_INCLUDE "./trace.h"
@@ -10,7 +10,7 @@
 #include <lttng/tracepoint.h>
 
 TRACEPOINT_EVENT(
-	trace_load_balancing,
+	trace_LB,
 	tp_name,
 	TP_ARGS(),
 	TP_FIELDS(
@@ -18,23 +18,64 @@ TRACEPOINT_EVENT(
 )
 
 TRACEPOINT_LOGLEVEL(
-	trace_load_balancing,
+	trace_LB,
 	tp_name,
 	TRACE_WARNING)
 
 TRACEPOINT_EVENT(
-	trace_load_balancing,
-	tp_name_1_int,
-	TP_ARGS(int, nb),
+	trace_LB,
+	tp_proc_entry,
+	TP_ARGS(),
 	TP_FIELDS(
-		ctf_integer(int,int , nb)
 	)
 )
 
 TRACEPOINT_LOGLEVEL(
-	trace_load_balancing,
-	tp_name_1_int,
+	trace_LB,
+	tp_proc_entry,
+	TRACE_WARNING
+)
+TRACEPOINT_EVENT(
+	trace_LB,
+	tp_proc_exit,
+	TP_ARGS(),
+	TP_FIELDS(
+	)
+)
+
+TRACEPOINT_LOGLEVEL(
+	trace_LB,
+	tp_proc_exit,
+	TRACE_WARNING
+)
+
+TRACEPOINT_EVENT(
+	trace_LB,
+	tp_first_stage,
+	TP_ARGS(int, num_req, int, proc_time),
+	TP_FIELDS(
+		ctf_integer(int, num_req , num_req)
+		ctf_integer(int, proc_time , proc_time)
+	)
+)
+
+TRACEPOINT_LOGLEVEL(
+	trace_LB,
+  tp_first_stage,
 	TRACE_WARNING)
 
+TRACEPOINT_EVENT(
+	trace_LB,
+	tp_overloaded,
+	TP_ARGS(int, tid),
+	TP_FIELDS(
+		ctf_integer(int,tid , tid)
+	)
+)
+
+TRACEPOINT_LOGLEVEL(
+	trace_LB,
+  tp_overloaded,
+	TRACE_WARNING)
 #endif
 #include <lttng/tracepoint-event.h>

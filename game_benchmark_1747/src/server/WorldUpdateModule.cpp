@@ -17,6 +17,10 @@
 
 #include <iostream>
 #include "ServerData.h"
+#ifndef TRACEPOINT_DEFINE
+  #define TRACEPOINT_DEFINE
+  #include "../tracing/trace.h"
+#endif
 #include "WorldUpdateModule.h"
 
 /***************************************************************************************************
@@ -35,6 +39,8 @@ SDL_barrier *_barr) {
 
   avg_wui = -1;
   avg_rui = -1;
+  avg_num_req_recvd = -1;
+  avg_time_proc_req = -1;
 
   assert(SDL_CreateThread( module_thread, (void*)this ) != NULL);
 }
@@ -46,7 +52,7 @@ SDL_barrier *_barr) {
  ***************************************************************************************************/
 
 void WorldUpdateModule::run() {
-  Uint32 start_time;
+  Uint32 start_time, processing_begin;
   Uint32 timeout;
   Uint32 wui, rui;
 
@@ -63,15 +69,18 @@ void WorldUpdateModule::run() {
   Uint32 start_quest = SDL_GetTicks() + sd->quest_between;
   Uint32 end_quest = start_quest + sd->quest_min
       + rand() % (sd->quest_max - sd->quest_min + 1);
-
-  printf("WorldUpdateModule started\n");
-
+  tracepoint(trace_LB, tp_name);
+  printf("WorldUpdateModule #%d started\n", t_id);
   /* main loop */
   while (true) {
+    double num_req_recvd = 0;
+    Uint32 processing_total = 0;
     start_time = SDL_GetTicks();
     timeout = sd->regular_update_interval;
 
     while ((m = comm->receive(timeout, t_id)) != NULL) {
+      ++num_req_recvd;
+      processing_begin = SDL_GetTicks();
       addr = m->getAddress();
       type = m->getType();
       p = sd->wm.findPlayer(addr, t_id);
@@ -108,11 +117,36 @@ void WorldUpdateModule::run() {
               (addr.host >> 16) & 0xFF, addr.host >> 24, addr.port);
       }
 
+      processing_total += (SDL_GetTicks() - processing_begin);
       delete m;
       timeout = sd->regular_update_interval - (SDL_GetTicks() - start_time);
       if (((int) timeout) < 0)
         timeout = 0;
     }
+
+    //Moving average for the number of requests received per thread
+    if(this->avg_num_req_recvd <= 0)
+    {
+      this->avg_num_req_recvd = num_req_recvd;
+    }
+    else
+    {
+      this->avg_num_req_recvd = (this->avg_num_req_recvd * 0.95)
+                                     + (num_req_recvd * 0.5);
+    }
+
+    //Moving average of the time spent processing the requests per thread
+    processing_total *= (10*1000); // one tick is 10 ms, so we multply by 10 to get it in ms and by 1000 to get it in us
+    if(avg_time_proc_req <= 0)
+    {
+      avg_time_proc_req = (double)processing_total;
+    }
+    else
+    {
+      avg_time_proc_req = (avg_time_proc_req * 0.95) + ((double)processing_total * 0.05);
+    }
+
+    tracepoint(trace_LB, tp_first_stage,(int) avg_num_req_recvd, (int)avg_time_proc_req);
 
     SDL_WaitBarrier(barrier);
 
@@ -124,8 +158,8 @@ void WorldUpdateModule::run() {
 
       sd->send_start_quest = 0;
       sd->send_end_quest = 0;
+
       if (start_time > start_quest) {
-        sd->wm.printRegions();
         start_quest = end_quest + sd->quest_between;
         sd->quest_pos.x = (rand() % sd->wm.n_regs.x) * CLIENT_MATRIX_SIZE
             + MAX_CLIENT_VIEW;
@@ -185,7 +219,7 @@ void WorldUpdateModule::run() {
       // the time it taks to process a request and respond exceeds the
       // regular update interval.
       if (has_sla_violation
-          || (has_sla_violation = ((SDL_GetTicks() - start_time) + wui) >
+          || (has_sla_violation = ((SDL_GetTicks() - start_time)) >
                                   sd->regular_update_interval)) {
         ++num_sla_violations;
       }

@@ -34,7 +34,8 @@ class WorldUpdateModule : public Module {
  public:
   double avg_wui;			// average_world_update_interval
   double avg_rui;			// average_regular_update_interval
-
+  double avg_num_req_recvd; //moving average of number a request
+  double avg_time_proc_req; //moving average of time spent processing requests
  public:
   /* Constructor and setup methods */
   WorldUpdateModule(int id, MessageModule *_comm, SDL_barrier *_barr);

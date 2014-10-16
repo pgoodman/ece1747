@@ -1,9 +1,10 @@
 #include <iostream>
+#include <float.h>
 #include "ServerData.h"
 #include "WorldMap.h"
-#include <lttng/tracef.h>
+
 //#define TRACEPOINT_DEFINE
-//#include "tracing/trace.h"
+#include "../tracing/trace.h"
 void WorldMap::generate() {
   int i, j;
   Vector2D pos;
@@ -32,8 +33,6 @@ void WorldMap::generate() {
       initRegion(&regions[i][j], pos, regmin,
                  (i * n_regs.y + j) / regions_per_thread, objs, pls);
   }
-
-  tracef("%d\n", i);
 
   /* generate objects */
   GameObject *o;
@@ -314,9 +313,49 @@ void WorldMap::reassignRegion(Region* r, int new_layout) {
 }
 
 void WorldMap::balance_lightest() {
-  printf("----\n");
+  vector<double> thrd_load_ratio;
+  thrd_load_ratio.reserve(sd->num_threads);
+  //Compute the load ratio
+  //number of player in sla violation / number of player 
   for (int x = 0; x <sd->num_threads; ++x) {
-    printf("sla_violation[%d]: %d / %d\n",x,sd->num_sla_violations[x], sd->wm.players[x].size());
+    int num_player = sd->wm.players[x].size();
+    if(num_player> 0)
+    {
+        thrd_load_ratio[x] = (double) sd->num_sla_violations[x] / (double) num_player;
+        assert(thrd_load_ratio[x] >= 0);
+    }
+    else
+    {
+      thrd_load_ratio[x] = 0.0;
+    }
+    cout<<"("<<x<<", "<<thrd_load_ratio[x]<<", "<<num_player<<") ";
+  }
+  cout<<endl;
+  for (int x = 0; x <sd->num_threads; ++x) {
+    //We suppose that a thread with no player can not be overloaded
+    if(sd->wm.players[x].size() == 0)
+    {
+      continue;
+    }
+
+    if(thrd_load_ratio[x] > sd->overloaded_level)
+    {
+      tracepoint(trace_LB, tp_overloaded, x);
+      //Find a underloaded thread
+      for(int y = 0; y < sd->num_threads; ++y)
+      {
+        if(thrd_load_ratio[y] < sd->light_level)
+        {
+          PlayerBucket *pb = &sd->wm.players[x];
+          pb->start();
+          Region *r = getRegionByLocation(pb->next()->pos);
+          reassignRegion(r, y);
+          cout<<"Thread "<<x<<" overloaded ("<<thrd_load_ratio[x]<<")."<<" Shedding region to "<<r->t_id<<endl;
+          sd->wm.printRegions();
+          break;
+        }
+      }
+    }
   }
 }
 
