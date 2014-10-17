@@ -320,12 +320,12 @@ void WorldMap::reassignRegion(Region* r, int t_id) {
 }
 
 struct LoadedThread {
-  double load;
+  int load;
   int num_players;
   int t_id;
 
   inline LoadedThread(double load_, int num_players_, int t_id_)
-      : load(load_),
+      : load((int) (100 * load_)),
         num_players(num_players_),
         t_id(t_id_) {}
 
