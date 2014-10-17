@@ -405,8 +405,9 @@ void WorldMap::balance_lightest() {
     // Shed to either the last underloaded thread that we found, or to the
     // next underloaded thread.
     if (!underloaded_threads.empty()) {
-      uthread = *underloaded_threads.begin();
-      underloaded_threads.erase(uthread);
+      auto it = underloaded_threads.begin();
+      uthread = *it;
+      underloaded_threads.erase(it);
     }
 
     reassignRegion(region, uthread.t_id);
