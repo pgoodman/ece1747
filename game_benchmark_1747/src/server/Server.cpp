@@ -12,7 +12,7 @@
  * TIME AND PLACE:
  *    University of Toronto, Toronto, Canada
  *    March - August 2007
- *
+ * 
  ***************************************************************************************************/
 
 #include "../General.h"

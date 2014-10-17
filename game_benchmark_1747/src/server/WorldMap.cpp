@@ -4,7 +4,6 @@
 #include "ServerData.h"
 #include "WorldMap.h"
 
-//#define TRACEPOINT_DEFINE
 #include "../tracing/trace.h"
 void WorldMap::generate() {
   int i, j;
@@ -320,10 +319,12 @@ void WorldMap::balance_lightest() {
   //number of player in sla violation / number of player 
   for (int x = 0; x <sd->num_threads; ++x) {
     int num_player = sd->wm.players[x].size();
-    if(num_player> 0)
+
+    //Check for potential division bu zero
+    if(num_player > 0)
     {
-        thrd_load_ratio[x] = (double) sd->num_sla_violations[x] / (double) num_player;
-        assert(thrd_load_ratio[x] >= 0);
+      thrd_load_ratio[x] = (double) sd->num_sla_violations[x] / (double) num_player;
+      assert(thrd_load_ratio[x] >= 0 && thrd_load_ratio[x] <= 1);
     }
     else
     {
@@ -344,11 +345,18 @@ void WorldMap::balance_lightest() {
     if(thrd_load_ratio[x] > sd->overloaded_level)
     {
       tracepoint(trace_LB, tp_overloaded, x);
-      //Find a underloaded thread
+      //Find a underloaded thread, searching sequentialy
       for(int y = 0; y < sd->num_threads; ++y)
       {
+        //check if the thread is underloaded
         if(thrd_load_ratio[y] < sd->light_level)
         {
+          //Hacky way to get a random region from
+          // a thread.
+          // From the player bucket we get the position 
+          // of the first player and find its associated 
+          // region. This the region that is going to be 
+          // sched to another thread.
           PlayerBucket *pb = &sd->wm.players[x];
           pb->start();
           Region *r = getRegionByLocation(pb->next()->pos);
@@ -356,7 +364,7 @@ void WorldMap::balance_lightest() {
           cout<<"Thread "<<x<<" overloaded ("<<thrd_load_ratio[x];
           cout<<")."<<" Shedding region to "<<r->t_id<<endl;
           sd->wm.printRegions();
-          break;
+          break; 
         }
       }
     }

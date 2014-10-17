@@ -54,7 +54,6 @@ SDL_barrier *_barr) {
 void WorldUpdateModule::run() {
   Uint32 start_time, processing_begin;
   Uint32 timeout;
-  Uint32 wui, rui;
 
   Message *m;
   IPaddress addr;
@@ -69,12 +68,11 @@ void WorldUpdateModule::run() {
   Uint32 start_quest = SDL_GetTicks() + sd->quest_between;
   Uint32 end_quest = start_quest + sd->quest_min
       + rand() % (sd->quest_max - sd->quest_min + 1);
-  tracepoint(trace_LB, tp_name);
   printf("WorldUpdateModule #%d started\n", t_id);
   /* main loop */
   while (true) {
     double num_req_recvd = 0;
-    Uint32 processing_total = 0;
+    double processing_total = 0;
     start_time = SDL_GetTicks();
     timeout = sd->regular_update_interval;
 
@@ -136,17 +134,19 @@ void WorldUpdateModule::run() {
     }
 
     //Moving average of the time spent processing the requests per thread
-    processing_total *= (10*1000); // one tick is 10 ms, so we multply by 10 to get it in ms and by 1000 to get it in us
+    //one tick is 10 msec, so we multply by 10 to get it in msec and by 1000 to
+    //get it in usec
+    processing_total *= (10*1000);
     if(avg_time_proc_req <= 0)
     {
-      avg_time_proc_req = (double)processing_total;
+      avg_time_proc_req = processing_total;
     }
     else
     {
-      avg_time_proc_req = (avg_time_proc_req * 0.95) + ((double)processing_total * 0.05);
+      avg_time_proc_req = (avg_time_proc_req * 0.95) + (processing_total * 0.05);
     }
 
-    tracepoint(trace_LB, tp_first_stage,(int) avg_num_req_recvd, (int)avg_time_proc_req);
+    tracepoint(trace_LB, tp_first_stage,(int) avg_num_req_recvd, (int) avg_time_proc_req);
 
     SDL_WaitBarrier(barrier);
 
@@ -185,13 +185,12 @@ void WorldUpdateModule::run() {
 
     SDL_WaitBarrier(barrier);
 
-    wui = SDL_GetTicks() - start_time;
-    avg_wui = (avg_wui < 0) ? wui : (avg_wui * 0.95 + (double) wui * 0.05);
     start_time = SDL_GetTicks();
 
     bool has_sla_violation = false;
     double num_sla_violations = 0.0;
-
+    int num_update_sent = 0;
+    double sending_time = 0;
     /* send updates to clients (map state) */
     bucket->start();
     while ((p = bucket->next()) != NULL) {
@@ -205,7 +204,7 @@ void WorldUpdateModule::run() {
 
       ms->prepare();
       comm->send(ms, t_id);
-
+      num_update_sent++;
       if (sd->send_start_quest)
         comm->send(
             new MessageXY(MESSAGE_SC_NEW_QUEST, t_id, p->address,
@@ -224,11 +223,36 @@ void WorldUpdateModule::run() {
       }
     }
 
-    //sd->has_sla_violation[t_id] = num_sla_violations > max_num_sla_violations;
     sd->num_sla_violations[t_id] = num_sla_violations;
+
+    //Moving average for the number of requests received per thread
+    if(this->avg_num_update_sent <= 0)
+    {
+      this->avg_num_update_sent = num_update_sent;
+    }
+    else
+    {
+      this->avg_num_update_sent = (this->avg_num_update_sent * 0.95)
+                                     + (num_update_sent * 0.5);
+    }
+
+    //Moving average of the time spent processing the requests per thread
+    //one tick is 10 msec, so we multply by 10 to get it in msec and by 1000 to
+    //get it in usec
+    sending_time = SDL_GetTicks() - start_time;
+    sending_time *= (10*1000);
+    if(this->avg_time_send_update <= 0)
+    {
+     this->avg_time_send_update = sending_time;
+    }
+    else
+    {
+      this->avg_time_send_update = (this->avg_time_send_update * 0.95) + (sending_time * 0.05);
+    }
+
+
+    tracepoint(trace_LB, tp_third_stage, (int) this->avg_num_update_sent,(int) this->avg_time_send_update ); 
     SDL_WaitBarrier(barrier);
-    rui = SDL_GetTicks() - start_time;
-    avg_rui = (avg_rui < 0) ? rui : (avg_rui * 0.95 + (double) rui * 0.05);
   }
 }
 
