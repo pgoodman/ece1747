@@ -7,7 +7,7 @@
 ## Compilation parameters
 
 CC = gcc
-CXX = g++
+CXX = g++ -std=c++0x
 CXXFLAGS := `sdl-config --cflags` -isystem /usr/include/SDL -isystem /usr/include/GL -I./src -I./src/tracing -Wall -g3 -rdynamic
 ## Other CXXFLAGS: (also defined in src/Settings.h)
 ## -D__DISABLE_RATE_MONITOR__	<== don't monitor trasnfer: faster transfer but no statistics

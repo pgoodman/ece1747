@@ -1,6 +1,8 @@
 #ifndef __WORLDMAP_H
 #define __WORLDMAP_H
 
+#include <set>
+
 #include "../General.h"
 #include "../comm/Message.h"
 
@@ -13,6 +15,7 @@ class WorldMap {
   PlayerBucket* players; /*array of PlayerBuckets, one for each thread */
   int n_players;
 
+  set<Region *> *thread_regions;  // Array of regions by t_id.
   Region** regions;
   Vector2D n_regs;
 

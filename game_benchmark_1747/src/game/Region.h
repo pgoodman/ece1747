@@ -16,7 +16,7 @@ typedef struct {
   int t_id;	// = thread_id of the thread handling the players from this region
 
   list<Player*> players;
-  int n_pls;
+  int num_players;
 
   list<GameObject*> objects;
 

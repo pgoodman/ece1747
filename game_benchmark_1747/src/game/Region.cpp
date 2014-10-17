@@ -1,15 +1,15 @@
 #include "Region.h"
 
-void initRegion(Region* r, Vector2D p, Vector2D sz, int _layout,
+void initRegion(Region* r, Vector2D p, Vector2D sz, int t_id,
                 list<GameObject*> objs, list<Player*> pls) {
   r->pos = p;
   r->size = sz;
 
-  r->t_id = _layout;
+  r->t_id = t_id;
 
   r->objects = objs;
   r->players = pls;
-  r->n_pls = pls.size();
+  r->num_players = pls.size();
 
   r->mutex = SDL_CreateMutex();
 }
@@ -30,7 +30,7 @@ int Region_addPlayer(Region* r, Player* p) {
     }
 
   r->players.push_front(p);
-  r->n_pls++;
+  r->num_players++;
 
   SDL_UnlockMutex(r->mutex);
 
@@ -44,7 +44,7 @@ void Region_removePlayer(Region* r, Player* p) {
   for (ip = r->players.begin(); ip != r->players.end(); ip++) {
     if ((*ip) == p) {
       r->players.erase(ip);
-      r->n_pls--;
+      r->num_players--;
       break;
     }
   }
@@ -80,12 +80,12 @@ bool Region_movePlayer(Region* r_old, Region* r_new, Player* p,
     for (ip = r_old->players.begin(); ip != r_old->players.end(); ip++)
       if ((*ip) == p) {
         r_old->players.erase(ip);
-        r_old->n_pls--;
+        r_old->num_players--;
         break;
       }
 
     r_new->players.push_front(p);
-    r_new->n_pls++;
+    r_new->num_players++;
   }
 
   res = true;

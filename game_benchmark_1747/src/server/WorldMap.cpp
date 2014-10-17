@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
-#include <float.h>
+#include <set>
+
 #include "ServerData.h"
 #include "WorldMap.h"
 
@@ -22,6 +23,7 @@ void WorldMap::generate() {
 
   list<Player*> pls;
   list<GameObject*> objs;
+  thread_regions = new set<Region *>[sd->num_threads];
 
   n_regs.x = size.x / regmin.x;
   n_regs.y = size.y / regmin.y;
@@ -29,9 +31,13 @@ void WorldMap::generate() {
   regions = new Region*[n_regs.x];
   for (i = 0, pos.x = 0; i < n_regs.x; i++, pos.x += regmin.x) {
     regions[i] = new Region[n_regs.y];
-    for (j = 0, pos.y = 0; j < n_regs.y; j++, pos.y += regmin.y)
-      initRegion(&regions[i][j], pos, regmin,
-                 (i * n_regs.y + j) / regions_per_thread, objs, pls);
+    for (j = 0, pos.y = 0; j < n_regs.y; j++, pos.y += regmin.y) {
+      auto t_id = (i * n_regs.y + j) / regions_per_thread;
+      auto region = &(regions[i][j]);
+      initRegion(region, pos, regmin, t_id, objs, pls);
+      thread_regions[t_id].insert(region);
+    }
+
   }
 
   /* generate objects */
@@ -302,72 +308,112 @@ void WorldMap::rewardPlayers(Vector2D quest_pos) {
       sd->quest_bonus, sd->player_max_life);
 }
 
-void WorldMap::reassignRegion(Region* r, int new_layout) {
+void WorldMap::reassignRegion(Region* r, int t_id) {
   list<Player*>::iterator pi;			//iterator for players
 
   for (pi = r->players.begin(); pi != r->players.end(); pi++) {
     players[r->t_id].erase(*pi);
-    players[new_layout].insert(*pi);
+    players[t_id].insert(*pi);
   }
-  r->t_id = new_layout;
+
+  thread_regions[r->t_id].erase(r);
+  r->t_id = t_id;
+  thread_regions[r->t_id].insert(r);
+}
+
+struct LoadedThread {
+  double load;
+  int num_players;
+  int t_id;
+
+  inline LoadedThread(double load_, int num_players_, int t_id_)
+      : load(load_),
+        num_players(num_players_),
+        t_id(t_id_) {}
+
+  bool operator<(const LoadedThread &that) const {
+    if (load < that.load) return true;
+    if (num_players < that.num_players) return true;
+    return t_id < that.t_id;
+  }
+};
+
+// Returns the region owned by a thread that has the fewest number of players.
+//
+// The purpose of this is that we hope to avoid the bad case of a thread
+// shedding a super loaded region over to another thread, then having that
+// heavy region just bounce between threads.
+Region *RegionWithFewestPlayers(WorldMap *wm, int t_id) {
+  Region *lightest_region(nullptr);
+  for (auto region : wm->thread_regions[t_id]) {
+    if (region->num_players) {
+      if (!lightest_region ||
+          region->num_players < lightest_region->num_players) {
+        lightest_region = region;
+      }
+    }
+  }
+  assert(nullptr != lightest_region);
+  return lightest_region;
 }
 
 void WorldMap::balance_lightest() {
-  vector<double> thrd_load_ratio;
-  thrd_load_ratio.reserve(sd->num_threads);
-  //Compute the load ratio
-  //number of player in sla violation / number of player 
-  for (int x = 0; x <sd->num_threads; ++x) {
-    int num_player = sd->wm.players[x].size();
+  set<LoadedThread> overloaded_threads;
 
-    //Check for potential division bu zero
-    if(num_player > 0)
-    {
-      thrd_load_ratio[x] = (double) sd->num_sla_violations[x] / (double) num_player;
-      assert(thrd_load_ratio[x] >= 0 && thrd_load_ratio[x] <= 1);
+  // Underloaded threads, ordered by least loaded to greatest loaded.
+  set<LoadedThread> underloaded_threads;
+
+  // Find the over- and under-loaded threads.
+  for (int t_id = 0; t_id < sd->num_threads; ++t_id) {
+    int num_players_ = sd->wm.players[t_id].size();
+    double num_players = (double) num_players_;
+    double num_sla_violations = (double) sd->num_sla_violations[t_id];
+    assert(num_sla_violations <= num_players);
+    double load_ratio = !num_players_ ? 0.0 : num_sla_violations / num_players;
+
+    cout << "(" << t_id << ", " << std::setprecision(2) << load_ratio
+         << ", " << num_players_ << ") ";
+
+    // Store regions from most overloaded to least overloaded.
+    if (load_ratio > sd->overloaded_level) {
+      overloaded_threads.insert(LoadedThread(1.0 - load_ratio, num_players_,
+                                             t_id));
+
+    // Store regions from having the least load to being up to the light load
+    // level.
+    } else if (load_ratio < sd->light_level) {
+      underloaded_threads.insert(LoadedThread(load_ratio, num_players_, t_id));
     }
-    else
-    {
-      thrd_load_ratio[x] = 0.0;
-    }
-    cout<<"("<<x<<", ";
-    cout<<std::fixed<<std::setprecision(2)<<thrd_load_ratio[x];
-    cout<<", "<<num_player<<") ";
   }
-  cout<<endl;
-  for (int x = 0; x <sd->num_threads; ++x) {
-    //We suppose that a thread with no player can not be overloaded
-    if(sd->wm.players[x].size() == 0)
-    {
-      continue;
+
+  cout << endl;
+
+  if (underloaded_threads.empty()) {
+    cout << "Could not re-balance overloaded threads! No threads are "
+         << "underloaded." << endl;
+    return;
+  }
+
+  LoadedThread uthread(0.0, 0, -1);
+  for (const auto &othread : overloaded_threads) {
+    auto region = RegionWithFewestPlayers(this, othread.t_id);
+
+    // Shed to either the last underloaded thread that we found, or to the
+    // next underloaded thread.
+    if (!underloaded_threads.empty()) {
+      uthread = *underloaded_threads.begin();
+      underloaded_threads.erase(uthread);
     }
 
-    if(thrd_load_ratio[x] > sd->overloaded_level)
-    {
-      tracepoint(trace_LB, tp_overloaded, x);
-      //Find a underloaded thread, searching sequentialy
-      for(int y = 0; y < sd->num_threads; ++y)
-      {
-        //check if the thread is underloaded
-        if(thrd_load_ratio[y] < sd->light_level)
-        {
-          //Hacky way to get a random region from
-          // a thread.
-          // From the player bucket we get the position 
-          // of the first player and find its associated 
-          // region. This the region that is going to be 
-          // sched to another thread.
-          PlayerBucket *pb = &sd->wm.players[x];
-          pb->start();
-          Region *r = getRegionByLocation(pb->next()->pos);
-          reassignRegion(r, y);
-          cout<<"Thread "<<x<<" overloaded ("<<thrd_load_ratio[x];
-          cout<<")."<<" Shedding region to "<<r->t_id<<endl;
-          sd->wm.printRegions();
-          break; 
-        }
-      }
-    }
+    reassignRegion(region, uthread.t_id);
+
+    cout << "Thread " << othread.t_id << " overloaded ("
+         << (1.0 - othread.load) << "). Shedding region to " << uthread.t_id
+         << endl;
+  }
+
+  if (!overloaded_threads.empty()) {
+    printRegions();
   }
 }
 
