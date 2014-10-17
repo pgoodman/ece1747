@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <float.h>
 #include "ServerData.h"
 #include "WorldMap.h"
@@ -284,7 +285,8 @@ void WorldMap::printRegions()
     cout<<j<<"\t";
     for(int i=0; i <n_regs.x; ++i)
     {
-      cout<< regions[i][j].t_id <<"\t";
+      //cout<<regions[i][j].pos.x<<","<<regions[i][j].pos.y<<" "<<regions[i][j].t_id <<"\t";
+      cout<<regions[i][j].t_id <<"\t";
     }
     cout<<endl;
   }
@@ -297,8 +299,7 @@ void WorldMap::regenerateObjects() {
 
 void WorldMap::rewardPlayers(Vector2D quest_pos) {
   Region_rewardPlayers(
-      &regions[quest_pos.x / CLIENT_MATRIX_SIZE][quest_pos.y
-          / CLIENT_MATRIX_SIZE],
+      getRegionByLocation(quest_pos),
       sd->quest_bonus, sd->player_max_life);
 }
 
@@ -328,7 +329,9 @@ void WorldMap::balance_lightest() {
     {
       thrd_load_ratio[x] = 0.0;
     }
-    cout<<"("<<x<<", "<<thrd_load_ratio[x]<<", "<<num_player<<") ";
+    cout<<"("<<x<<", ";
+    cout<<std::fixed<<std::setprecision(2)<<thrd_load_ratio[x];
+    cout<<", "<<num_player<<") ";
   }
   cout<<endl;
   for (int x = 0; x <sd->num_threads; ++x) {
@@ -350,7 +353,8 @@ void WorldMap::balance_lightest() {
           pb->start();
           Region *r = getRegionByLocation(pb->next()->pos);
           reassignRegion(r, y);
-          cout<<"Thread "<<x<<" overloaded ("<<thrd_load_ratio[x]<<")."<<" Shedding region to "<<r->t_id<<endl;
+          cout<<"Thread "<<x<<" overloaded ("<<thrd_load_ratio[x];
+          cout<<")."<<" Shedding region to "<<r->t_id<<endl;
           sd->wm.printRegions();
           break;
         }

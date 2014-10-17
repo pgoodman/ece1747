@@ -161,9 +161,9 @@ void WorldUpdateModule::run() {
 
       if (start_time > start_quest) {
         start_quest = end_quest + sd->quest_between;
-        sd->quest_pos.x = (rand() % sd->wm.n_regs.x) * CLIENT_MATRIX_SIZE
+        sd->quest_pos.x = (rand() % sd->wm.n_regs.x) * sd->wm.regmin.x
             + MAX_CLIENT_VIEW;
-        sd->quest_pos.y = (rand() % sd->wm.n_regs.y) * CLIENT_MATRIX_SIZE
+        sd->quest_pos.y = (rand() % sd->wm.n_regs.y) * sd->wm.regmin.y
             + MAX_CLIENT_VIEW;
         sd->send_start_quest = 1;
         if (sd->display_quests){
@@ -191,7 +191,6 @@ void WorldUpdateModule::run() {
 
     bool has_sla_violation = false;
     double num_sla_violations = 0.0;
-    double max_num_sla_violations = static_cast<double>(bucket->size()) * 0.9;
 
     /* send updates to clients (map state) */
     bucket->start();
@@ -220,7 +219,7 @@ void WorldUpdateModule::run() {
       // regular update interval.
       if (has_sla_violation
           || (has_sla_violation = ((SDL_GetTicks() - start_time)) >
-                                  sd->regular_update_interval)) {
+                                 (unsigned int) sd->regular_update_interval)) {
         ++num_sla_violations;
       }
     }
