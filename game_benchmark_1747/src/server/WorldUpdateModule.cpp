@@ -18,8 +18,8 @@
 #include <iostream>
 #include "ServerData.h"
 #ifndef TRACEPOINT_DEFINE
-  #define TRACEPOINT_DEFINE
-  #include "../tracing/trace.h"
+#define TRACEPOINT_DEFINE
+#include "../tracing/trace.h"
 #endif
 #include "WorldUpdateModule.h"
 
@@ -123,30 +123,26 @@ void WorldUpdateModule::run() {
     }
 
     //Moving average for the number of requests received per thread
-    if(this->avg_num_req_recvd <= 0)
-    {
+    if (this->avg_num_req_recvd <= 0) {
       this->avg_num_req_recvd = num_req_recvd;
-    }
-    else
-    {
+    } else {
       this->avg_num_req_recvd = (this->avg_num_req_recvd * 0.95)
-                                     + (num_req_recvd * 0.5);
+          + (num_req_recvd * 0.5);
     }
 
     //Moving average of the time spent processing the requests per thread
     //one tick is 10 msec, so we multply by 10 to get it in msec and by 1000 to
     //get it in usec
-    processing_total *= (10*1000);
-    if(avg_time_proc_req <= 0)
-    {
+    processing_total *= (10 * 1000);
+    if (avg_time_proc_req <= 0) {
       avg_time_proc_req = processing_total;
-    }
-    else
-    {
-      avg_time_proc_req = (avg_time_proc_req * 0.95) + (processing_total * 0.05);
+    } else {
+      avg_time_proc_req = (avg_time_proc_req * 0.95)
+          + (processing_total * 0.05);
     }
 
-    tracepoint(trace_LB, tp_first_stage,(int) avg_num_req_recvd, (int) avg_time_proc_req);
+    tracepoint(trace_LB, tp_first_stage, (int ) avg_num_req_recvd,
+               (int ) avg_time_proc_req);
 
     SDL_WaitBarrier(barrier);
 
@@ -161,16 +157,16 @@ void WorldUpdateModule::run() {
 
       if (start_time > start_quest) {
         start_quest = end_quest + sd->quest_between;
-        sd->quest_pos.x = (rand() % sd->wm.n_regs.x) * sd->wm.regmin.x
-            + MAX_CLIENT_VIEW;
-        sd->quest_pos.y = (rand() % sd->wm.n_regs.y) * sd->wm.regmin.y
-            + MAX_CLIENT_VIEW;
+        sd->quest_pos.x = (rand() % sd->wm.n_regs.x)
+            * sd->wm.regmin.x + MAX_CLIENT_VIEW;
+        sd->quest_pos.y = (rand() % sd->wm.n_regs.y)
+            * sd->wm.regmin.y + MAX_CLIENT_VIEW;
         sd->send_start_quest = 1;
-        if (sd->display_quests){
-          cout<<"New quest "<<sd->quest_pos.x<<","<<sd->quest_pos.y
-              <<" (handled by tid:"
-              <<sd->wm.getRegionByLocation(sd->quest_pos)->t_id
-              <<")"<<endl;
+        if (sd->display_quests) {
+          cout << "New quest " << sd->quest_pos.x << "," << sd->quest_pos.y
+               << " (handled by tid:"
+               << sd->wm.getRegionByLocation(sd->quest_pos)->t_id << ")"
+               << endl;
         }
       }
       if (start_time > end_quest) {
@@ -217,8 +213,8 @@ void WorldUpdateModule::run() {
       // the time it taks to process a request and respond exceeds the
       // regular update interval.
       if (has_sla_violation
-          || (has_sla_violation = ((SDL_GetTicks() - start_time)) >
-                                 (unsigned int) sd->regular_update_interval)) {
+          || (has_sla_violation = ((SDL_GetTicks() - start_time))
+              > (unsigned int) sd->regular_update_interval)) {
         ++num_sla_violations;
       }
     }
@@ -226,32 +222,27 @@ void WorldUpdateModule::run() {
     sd->num_sla_violations[t_id] = num_sla_violations;
 
     //Moving average for the number of requests received per thread
-    if(this->avg_num_update_sent <= 0)
-    {
+    if (this->avg_num_update_sent <= 0) {
       this->avg_num_update_sent = num_update_sent;
-    }
-    else
-    {
+    } else {
       this->avg_num_update_sent = (this->avg_num_update_sent * 0.95)
-                                     + (num_update_sent * 0.5);
+          + (num_update_sent * 0.5);
     }
 
     //Moving average of the time spent processing the requests per thread
     //one tick is 10 msec, so we multply by 10 to get it in msec and by 1000 to
     //get it in usec
     sending_time = SDL_GetTicks() - start_time;
-    sending_time *= (10*1000);
-    if(this->avg_time_send_update <= 0)
-    {
-     this->avg_time_send_update = sending_time;
-    }
-    else
-    {
-      this->avg_time_send_update = (this->avg_time_send_update * 0.95) + (sending_time * 0.05);
+    sending_time *= (10 * 1000);
+    if (this->avg_time_send_update <= 0) {
+      this->avg_time_send_update = sending_time;
+    } else {
+      this->avg_time_send_update = (this->avg_time_send_update * 0.95)
+          + (sending_time * 0.05);
     }
 
-
-    tracepoint(trace_LB, tp_third_stage, (int) this->avg_num_update_sent,(int) this->avg_time_send_update ); 
+    tracepoint(trace_LB, tp_third_stage, (int ) this->avg_num_update_sent,
+               (int ) this->avg_time_send_update);
     SDL_WaitBarrier(barrier);
   }
 }
@@ -264,41 +255,41 @@ void WorldUpdateModule::run() {
 
 /* generate a new player, send an ok message */
 void WorldUpdateModule::handleClientJoinRequest(Player* p, IPaddress addr) {
-if (p) {
-  comm->send(new Message(MESSAGE_SC_NOK_JOIN, 0, p->address), t_id);
-  printf(
-      "[WARNING] Player already on server '%s' (send not ok to join message)\n",
-      p->name);
-  return;
-}
+  if (p) {
+    comm->send(new Message(MESSAGE_SC_NOK_JOIN, 0, p->address), t_id);
+    printf(
+        "[WARNING] Player already on server '%s' (send not ok to join message)\n",
+        p->name);
+    return;
+  }
 
-p = sd->wm.addPlayer(addr);
+  p = sd->wm.addPlayer(addr);
 
-MessageOkJoin *mok = new MessageOkJoin(t_id, p->address, p->name, p->pos,
-                                       sd->wm.size);
-comm->send((Message*) mok, t_id);
-tracepoint(trace_LB,tp_player_join);
-if (sd->display_user_on_off)
-  printf("New player: %s (%d,%d)\n", p->name, p->pos.x, p->pos.y);
+  MessageOkJoin *mok = new MessageOkJoin(t_id, p->address, p->name, p->pos,
+                                         sd->wm.size);
+  comm->send((Message*) mok, t_id);
+  tracepoint(trace_LB, tp_player_join);
+  if (sd->display_user_on_off)
+    printf("New player: %s (%d,%d)\n", p->name, p->pos.x, p->pos.y);
 }
 
 /* remove client from WorldMap and send an ok_leave message */
 void WorldUpdateModule::handleClientLeaveRequest(Player* p) {
-assert(p);
-sd->wm.removePlayer(p);
+  assert(p);
+  sd->wm.removePlayer(p);
 
-Message *mok = new Message(MESSAGE_SC_OK_LEAVE, t_id, p->address);
-comm->send(mok, t_id);
+  Message *mok = new Message(MESSAGE_SC_OK_LEAVE, t_id, p->address);
+  comm->send(mok, t_id);
 
-tracepoint(trace_LB,tp_player_quit);
-if (sd->display_user_on_off)
-  printf("Removing player %s\n", p->name);
-delete p;
+  tracepoint(trace_LB, tp_player_quit);
+  if (sd->display_user_on_off)
+    printf("Removing player %s\n", p->name);
+  delete p;
 }
 
 void WorldUpdateModule::handle_move(Player* p, int _dir) {
-assert(p);
-p->dir = _dir;
-sd->wm.movePlayer(p);
+  assert(p);
+  p->dir = _dir;
+  sd->wm.movePlayer(p);
 }
 

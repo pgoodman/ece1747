@@ -58,9 +58,9 @@ public:
   bool insert(Player *p);
 
   Player* find(IPaddress addr);
-  bool erase(IPaddress addr);
+  void erase(IPaddress addr);
 
-  bool erase(Player *p) {return erase( p->address );}
+  void erase(Player *p) {erase( p->address );}
   int size() {return dic.size();}
 
   void start();

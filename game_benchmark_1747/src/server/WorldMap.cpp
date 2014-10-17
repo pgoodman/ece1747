@@ -309,11 +309,9 @@ void WorldMap::rewardPlayers(Vector2D quest_pos) {
 }
 
 void WorldMap::reassignRegion(Region* r, int t_id) {
-  list<Player*>::iterator pi;			//iterator for players
-
-  for (pi = r->players.begin(); pi != r->players.end(); pi++) {
-    players[r->t_id].erase(*pi);
-    players[t_id].insert(*pi);
+  for (auto player : r->players) {
+    players[r->t_id].erase(player);
+    players[t_id].insert(player);
   }
 
   thread_regions[r->t_id].erase(r);
@@ -333,7 +331,11 @@ struct LoadedThread {
 
   bool operator<(const LoadedThread &that) const {
     if (load < that.load) return true;
+    else if (load > that.load) return false;
+
     if (num_players < that.num_players) return true;
+    else if (num_players > that.num_players) return false;
+
     return t_id < that.t_id;
   }
 };

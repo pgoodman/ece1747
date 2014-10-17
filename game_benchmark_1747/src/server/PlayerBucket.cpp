@@ -57,19 +57,10 @@ Player* PlayerBucket::find(IPaddress addr) {
   return p;
 }
 
-bool PlayerBucket::erase(IPaddress addr) {
-  int res = false;
+void PlayerBucket::erase(IPaddress addr) {
   SDL_LockMutex(lock);
-  PlayerDicIterator result = dic.find(addr);
-  if (result != dic.end()) {
-    if (it == result)
-      it++;
-    dic.erase(result);
-    res = true;
-  }
+  dic.erase(addr);
   SDL_UnlockMutex(lock);
-
-  return res;
 }
 
 /***************************************************************************************************

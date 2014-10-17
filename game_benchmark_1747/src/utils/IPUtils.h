@@ -31,7 +31,10 @@
 
 struct IpComparator {
   bool operator()(IPaddress a1, IPaddress a2) const {
-    return ((int) ipcmp(a1, a2) < 0);
+    if (a1.host < a2.host) return true;
+    else if (a1.host > a2.host) return false;
+
+    return a1.port < a2.port;
   }
 };
 
