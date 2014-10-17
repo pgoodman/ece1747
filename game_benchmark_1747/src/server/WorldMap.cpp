@@ -363,9 +363,13 @@ void WorldMap::balance_lightest() {
   // Underloaded threads, ordered by least loaded to greatest loaded.
   set<LoadedThread> underloaded_threads;
 
+  int total_num_players = 0;
+
   // Find the over- and under-loaded threads.
   for (int t_id = 0; t_id < sd->num_threads; ++t_id) {
     int num_players_ = sd->wm.players[t_id].size();
+    total_num_players += num_players_;
+
     double num_players = (double) num_players_;
     double num_sla_violations = (double) sd->num_sla_violations[t_id];
     assert(num_sla_violations <= num_players);
@@ -386,7 +390,7 @@ void WorldMap::balance_lightest() {
     }
   }
 
-  cout << endl;
+  cout << " = " << total_num_players << endl;
 
   if (underloaded_threads.empty()) {
     cout << "Could not re-balance overloaded threads! No threads are "
