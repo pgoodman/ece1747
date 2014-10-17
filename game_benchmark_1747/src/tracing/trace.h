@@ -24,12 +24,40 @@ TRACEPOINT_LOGLEVEL(
 
 TRACEPOINT_EVENT(
 	trace_LB,
+	tp_player_join,
+	TP_ARGS(),
+	TP_FIELDS(
+	)
+)
+//Player join and quit tracepoint
+TRACEPOINT_LOGLEVEL(
+	trace_LB,
+	tp_player_join,
+	TRACE_WARNING)
+
+TRACEPOINT_EVENT(
+	trace_LB,
+	tp_player_quit,
+	TP_ARGS(),
+	TP_FIELDS(
+	)
+)
+
+TRACEPOINT_LOGLEVEL(
+	trace_LB,
+	tp_player_quit,
+	TRACE_WARNING)
+
+TRACEPOINT_EVENT(
+	trace_LB,
 	tp_proc_entry,
 	TP_ARGS(),
 	TP_FIELDS(
 	)
 )
 
+
+//Processing entry and exit
 TRACEPOINT_LOGLEVEL(
 	trace_LB,
 	tp_proc_entry,

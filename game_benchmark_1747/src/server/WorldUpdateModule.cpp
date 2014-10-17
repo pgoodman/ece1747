@@ -254,7 +254,7 @@ p = sd->wm.addPlayer(addr);
 MessageOkJoin *mok = new MessageOkJoin(t_id, p->address, p->name, p->pos,
                                        sd->wm.size);
 comm->send((Message*) mok, t_id);
-
+tracepoint(trace_LB,tp_player_join);
 if (sd->display_user_on_off)
   printf("New player: %s (%d,%d)\n", p->name, p->pos.x, p->pos.y);
 }
@@ -267,6 +267,7 @@ sd->wm.removePlayer(p);
 Message *mok = new Message(MESSAGE_SC_OK_LEAVE, t_id, p->address);
 comm->send(mok, t_id);
 
+tracepoint(trace_LB,tp_player_quit);
 if (sd->display_user_on_off)
   printf("Removing player %s\n", p->name);
 delete p;
