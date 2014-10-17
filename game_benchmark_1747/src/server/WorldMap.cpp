@@ -36,6 +36,7 @@ void WorldMap::generate() {
       auto region = &(regions[i][j]);
       initRegion(region, pos, regmin, t_id, objs, pls);
       thread_regions[t_id].insert(region);
+      all_regions.insert(region);
     }
 
   }
@@ -424,7 +425,38 @@ void WorldMap::balance_lightest() {
   }
 }
 
+struct ordered_region{
+  Region * r;
+  implicit ordered_region(Region * r_)
+    :r(r_)
+  {}
+  bool operator<(const ordered_region &that) const
+  {
+    return r->num_players > that->num_players; 
+  }
+};
+
 void WorldMap::balance_spread() {
+  int targeted_avg = (int) (n_players/(double) sd->num_player);
+  set<ordered_region> regions;
+  vector<int> num_player(sd->num_threads);
+  region.insert(all_regions.begin(), all_regions.end()); 
+  
+  for(bool made_progress = true; made_progress;)
+  {
+
+    made_progress =false;
+    for(auto tid: sd->zigzag_tids)
+    {
+      if(regions.empty())
+      {
+        return;
+      }
+      auto oregion_it = regions.begin();
+      auto region = oregion_it->r;
+      
+    }
+  }
 }
 
 void WorldMap::balance() {

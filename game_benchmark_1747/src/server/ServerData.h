@@ -43,6 +43,7 @@ struct ServerData {
   vector<int> num_sla_violations;
   vector<int> time_processing_rqst;
   vector<int> num_requests_recvd;
+  vector<int> zigzag_tids;
   /* stats */
   int stats_interval;
 

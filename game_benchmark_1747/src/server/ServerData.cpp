@@ -28,6 +28,14 @@ void ServerData::dataFromConfigurator(Configurator &conf) {
     printf("The maximum number of threads is %d\n", MAX_THREADS);
     throw "Config file: Too many threads";
   }
+  for(int i = 0; i < this->num_threads; ++i)
+  {
+    this->zigzag_tids.push_back(i); 
+  }
+  for(int i = this->num_threads; i-->0 ;)
+  {
+    this->zigzag_tids.push_back(i); 
+  }
   if (this->regular_update_interval < 0)
     throw "Config file: Regular update interval must be positive";
 

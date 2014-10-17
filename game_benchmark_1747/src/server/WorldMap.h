@@ -14,8 +14,9 @@ class WorldMap {
   char** terrain;
   PlayerBucket* players; /*array of PlayerBuckets, one for each thread */
   int n_players;
-
+  
   set<Region *> *thread_regions;  // Array of regions by t_id.
+  set<Region *> all_regions;  // Array of regions by t_id.
   Region** regions;
   Vector2D n_regs;
 
