@@ -427,25 +427,29 @@ void WorldMap::balance_lightest() {
 
 struct ordered_region{
   Region * r;
-  implicit ordered_region(Region * r_)
+  ordered_region(Region * r_)
     :r(r_)
   {}
+   //Sorted from largest number of player to smallest seems a better idea
+   //so we don't get stuck at the end of with several avgly loaded thread and
+   //a highly populated region to give.
   bool operator<(const ordered_region &that) const
   {
-    return r->num_players > that->num_players; 
+    return r->num_players < that.r->num_players; 
   }
 };
 
 void WorldMap::balance_spread() {
-  int targeted_avg = (int) (n_players/(double) sd->num_player);
+  int targeted_avg = (int) (n_players/(double) sd->num_threads);
   set<ordered_region> regions;
   vector<int> num_player(sd->num_threads);
-  region.insert(all_regions.begin(), all_regions.end()); 
-  
+  for(auto region_it: all_regions)
+    regions.insert(region_it);
+
   for(bool made_progress = true; made_progress;)
   {
 
-    made_progress =false;
+    made_progress = false;
     for(auto tid: sd->zigzag_tids)
     {
       if(regions.empty())
@@ -454,9 +458,12 @@ void WorldMap::balance_spread() {
       }
       auto oregion_it = regions.begin();
       auto region = oregion_it->r;
-      
+      reassignRegion(region, tid);
+      regions.erase(oregion_it);
+      made_progress = true;
     }
   }
+    printRegions();
 }
 
 void WorldMap::balance() {
