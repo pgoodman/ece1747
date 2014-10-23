@@ -5,7 +5,7 @@ import csv
 
 class Iteration(object):
     __slots__ = ('time', 'num_req', 'proc_time', 'num_update', 'sent_time')
-    def __init__():
+    def __init__(self):
         self.time = 0
         self.num_req = 0
         self.proc_time = 0
@@ -37,6 +37,7 @@ def top5proc():
     
     stage_1 = 0
     stage_2 = 1
+    first_time = 0
     # iterate events
     for event in col.events:
         # keep only `sched_switch` events
@@ -46,16 +47,17 @@ def top5proc():
             num_player -= 1
         elif "first_stage" in event.name:
             it = Iteration()
-            it.time = event.timestamp
+            first_time = first_time or event.timestamp
+            it.time = max(event.timestamp - first_time, 0)
             it.num_req = event['num_req']
             it.proc_time = event['proc_time']
             threads[event['vtid']].append(it)
         elif "third_stage" in event.name:
             it = threads[event['vtid']][-1]
             it.num_update = event['num_update']
-            it.send_time = event['sent_time']
+            it.sent_time = event['sent_time']
 
-    writer = csv.writer(open("data.csv", "wb"))
+    writer = csv.writer(open("data.csv", "w"))
 
     num_events = min(len(events) for events in threads.values())
     tids = list(threads.keys())
@@ -78,11 +80,11 @@ def top5proc():
 
         row = [time]
         row.extend(num_req)
-        row.append(["",time])
+        row.extend(["",time])
         row.extend(proc_time)
-        row.append(["",time])
+        row.extend(["",time])
         row.extend(num_update)
-        row.append(["",time])
+        row.extend(["",time])
         row.extend(sent_time)
         writer.writerow(row)
 
