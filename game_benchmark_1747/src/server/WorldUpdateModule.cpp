@@ -129,7 +129,7 @@ void WorldUpdateModule::run() {
       this->avg_num_req_recvd = num_req_recvd;
     } else {
       this->avg_num_req_recvd = (this->avg_num_req_recvd * 0.95)
-          + (num_req_recvd * 0.5);
+          + (num_req_recvd * 0.05);
     }
 
     //Moving average of the time spent processing the requests per thread
@@ -227,7 +227,7 @@ void WorldUpdateModule::run() {
       this->avg_num_update_sent = num_update_sent;
     } else {
       this->avg_num_update_sent = (this->avg_num_update_sent * 0.95)
-          + (num_update_sent * 0.5);
+          + (num_update_sent * 0.05);
     }
 
     //Moving average of the time spent processing the requests per thread
