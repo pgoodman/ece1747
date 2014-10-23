@@ -133,9 +133,8 @@ void WorldUpdateModule::run() {
     }
 
     //Moving average of the time spent processing the requests per thread
-    //one tick is 10 msec, so we multply by 10 to get it in msec and by 1000 to
-    //get it in usec
-    processing_total *= (10 * 1000);
+    //one tick is 1 msec, so we multply by 1000 to get it in usec
+    processing_total *= 1000;
     if (avg_time_proc_req <= 0) {
       avg_time_proc_req = processing_total;
     } else {
@@ -232,10 +231,9 @@ void WorldUpdateModule::run() {
     }
 
     //Moving average of the time spent processing the requests per thread
-    //one tick is 10 msec, so we multply by 10 to get it in msec and by 1000 to
-    //get it in usec
+    //one tick is 1 msec, so we multply by 1000 to get it in usec
     sending_time = SDL_GetTicks() - start_time;
-    sending_time *= (10 * 1000);
+    sending_time *= 1000;
     if (this->avg_time_send_update <= 0) {
       this->avg_time_send_update = sending_time;
     } else {
