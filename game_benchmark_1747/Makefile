@@ -8,7 +8,7 @@
 
 CC = gcc
 CXX = g++ -std=c++0x
-CXXFLAGS := `sdl-config --cflags` -isystem /usr/include/SDL -isystem /usr/include/GL -I./src -I./src/tracing -Wall -g3 -rdynamic
+CXXFLAGS := `sdl-config --cflags` -isystem /usr/include/SDL -isystem /usr/include/GL -I./src -I./src/tracing -Wall -O0 -g3 -rdynamic
 ## Other CXXFLAGS: (also defined in src/Settings.h)
 ## -D__DISABLE_RATE_MONITOR__	<== don't monitor trasnfer: faster transfer but no statistics
 ## -D__COMPRESSED_MESSAGES__	<== update messages from server to clients are compressed with zlib

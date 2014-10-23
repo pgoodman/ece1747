@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include <iomanip>
 #include <set>
 
@@ -6,6 +7,8 @@
 #include "WorldMap.h"
 
 #include "../tracing/trace.h"
+#define P( ...)
+ 
 void WorldMap::generate() {
   int i, j;
   Vector2D pos;
@@ -310,6 +313,10 @@ void WorldMap::rewardPlayers(Vector2D quest_pos) {
 }
 
 void WorldMap::reassignRegion(Region* r, int t_id) {
+  if(r->t_id == t_id)
+  {
+    return;
+  }
   for (auto player : r->players) {
     players[r->t_id].erase(player);
     players[t_id].insert(player);
@@ -378,8 +385,8 @@ void WorldMap::balance_lightest() {
     assert(num_sla_violations <= num_players);
     double load_ratio = !num_players_ ? 0.0 : num_sla_violations / num_players;
 
-    cout << "(" << t_id << ", " << std::setprecision(2) << load_ratio
-         << ", " << num_players_ << ") ";
+    P(cout << "(" << t_id << ", " << std::setprecision(2) << load_ratio
+         << ", " << num_players_ << ") ";)
 
     // Store regions from most overloaded to least overloaded.
     if (load_ratio > sd->overloaded_level) {
@@ -393,11 +400,11 @@ void WorldMap::balance_lightest() {
     }
   }
 
-  cout << " = " << total_num_players << endl;
+  P(cout << " = " << total_num_players << endl;)
 
   if (underloaded_threads.empty()) {
-    cout << "Could not re-balance overloaded threads! No threads are "
-         << "underloaded." << endl;
+P(    cout << "Could not re-balance overloaded threads! No threads are "
+         << "underloaded." << endl;)
     return;
   }
 
@@ -415,13 +422,13 @@ void WorldMap::balance_lightest() {
 
     reassignRegion(region, uthread.t_id);
 
-    cout << "Thread " << othread.t_id << " overloaded ("
+    P(cout << "Thread " << othread.t_id << " overloaded ("
          << (1.0 - othread.load) << "). Shedding region to " << uthread.t_id
-         << endl;
+         << endl;)
   }
 
   if (!overloaded_threads.empty()) {
-    printRegions();
+   P( printRegions();)
   }
 }
 
@@ -435,16 +442,22 @@ struct ordered_region{
    //a highly populated region to give.
   bool operator<(const ordered_region &that) const
   {
-    return r->num_players < that.r->num_players; 
+    if(r->num_players > that.r->num_players)return true;
+    else if  (r->num_players < that.r->num_players) return false;
+    else return r > that.r;
   }
 };
 
 void WorldMap::balance_spread() {
   int targeted_avg = (int) (n_players/(double) sd->num_threads);
   set<ordered_region> regions;
-  vector<int> num_player(sd->num_threads);
-  for(auto region_it: all_regions)
-    regions.insert(region_it);
+  vector<int> num_players(sd->num_threads);
+  
+  // order all of our regions
+  for(auto region: all_regions)
+  {
+    regions.insert(region);
+  }
 
   for(bool made_progress = true; made_progress;)
   {
@@ -454,16 +467,36 @@ void WorldMap::balance_spread() {
     {
       if(regions.empty())
       {
-        return;
+        goto end;
+  //        return;
       }
-      auto oregion_it = regions.begin();
-      auto region = oregion_it->r;
-      reassignRegion(region, tid);
-      regions.erase(oregion_it);
-      made_progress = true;
+      //if the number of players is greater than the targeted avg
+      //we skip to the next thread
+      if( num_players[tid] < targeted_avg)
+      {
+        auto oregion_it = regions.begin();
+        auto region = oregion_it->r;
+        reassignRegion(region, tid);
+        num_players[tid] += region->num_players;
+        regions.erase(oregion_it);
+        made_progress = true;
+      }
     }
   }
-    printRegions();
+
+  for(auto oregion: regions)
+  {
+    //Tid with the minimum number of players
+    auto tid = std::min_element(num_players.begin(), num_players.end()) -
+                                                    num_players.begin();
+    auto region = oregion.r;
+
+    reassignRegion(region, tid);
+    num_players[tid] += region->num_players;
+  }
+end:
+  P(printRegions();)
+  return;
 }
 
 void WorldMap::balance() {

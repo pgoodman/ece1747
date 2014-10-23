@@ -119,7 +119,9 @@ void WorldUpdateModule::run() {
       delete m;
       timeout = sd->regular_update_interval - (SDL_GetTicks() - start_time);
       if (((int) timeout) < 0)
+      {
         timeout = 0;
+      }
     }
 
     //Moving average for the number of requests received per thread
