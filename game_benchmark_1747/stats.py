@@ -56,19 +56,24 @@ def top5proc():
             it = threads[event['vtid']][-1]
             it.num_update = event['num_update']
             it.sent_time = event['sent_time']
+        elif "quest_manager" in event.name:
+            pass
 
-    writer = csv.writer(open("data.csv", "w"))
+    quest_writer = csv.writer(open("quests.dat", "w"))
+    num_req_writer = csv.writer(open("num_req.dat", "w"))
+    proc_time_writer = csv.writer(open("proc_time.dat", "w"))
+    num_update_writer = csv.writer(open("num_update.dat", "w"))
+    sent_time_writer = csv.writer(open("sent_time.dat", "w"))
 
     num_events = min(len(events) for events in threads.values())
     tids = list(threads.keys())
 
-    writer.writerow(["time"] + tids + ["","time"] + tids + ["","time"] + tids + ["","time"] + tids)
 
     for i in range(num_events):
-        num_req = []
-        proc_time = []
-        num_update = []
-        sent_time = []
+        num_req = [i]
+        proc_time = [i]
+        num_update = [i]
+        sent_time = [i]
         time = 0
         for tid in tids:
             it = threads[tid][i]
@@ -78,15 +83,10 @@ def top5proc():
             num_update.append(it.num_update)
             sent_time.append(it.sent_time)
 
-        row = [time]
-        row.extend(num_req)
-        row.extend(["",time])
-        row.extend(proc_time)
-        row.extend(["",time])
-        row.extend(num_update)
-        row.extend(["",time])
-        row.extend(sent_time)
-        writer.writerow(row)
+        num_req_writer.writerow(num_req)
+        proc_time_writer.writerow(proc_time)
+        num_update_writer.writerow(num_update)
+        sent_time_writer.writerow(sent_time)
 
 if __name__ == '__main__':
     top5proc()

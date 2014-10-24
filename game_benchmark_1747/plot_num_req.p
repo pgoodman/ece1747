@@ -1,0 +1,27 @@
+set datafile separator ","
+
+# Output file type and location
+set term png
+set output '/tmp/num_req.png'
+
+# Legend location
+set key default
+set key bottom right
+
+# Axis scaling
+set   autoscale                        # scale axes automatically
+unset log                              # remove any log-scaling
+unset label                            # remove any previous labels
+
+set title "Requests per Thread"
+set xlabel "Time"
+set ylabel "Number of Requests"
+
+# Add in a rectangle behind the lines that highlights the times of the quest
+set obj 1 rectangle from "300",graph 0 to "700",graph 1 fc lt -1 fs solid 0.15 noborder behind
+
+# Plot columns 2, 3, 4, and 5 on the y axis for each X (column 1).
+plot "num_req.dat" using 1:2 title 'Thread 1' smooth csplines, \
+     "num_req.dat" using 1:3 title 'Thread 2' smooth csplines, \
+     "num_req.dat" using 1:4 title 'Thread 3' smooth csplines, \
+     "num_req.dat" using 1:5 title 'Thread 4' smooth csplines

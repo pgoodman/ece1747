@@ -51,6 +51,11 @@ SDL_barrier *_barr) {
  *
  ***************************************************************************************************/
 
+int num_iterations = 0;
+const int max_num_iterations = 1000;
+const int quest_begin = 300;
+const int quest_end = 700;
+
 void WorldUpdateModule::run() {
   Uint32 start_time, processing_begin;
   Uint32 timeout;
@@ -65,9 +70,6 @@ void WorldUpdateModule::run() {
   Serializator *s = NULL;
   MessageWithSerializator *ms = NULL;
 
-  Uint32 start_quest = SDL_GetTicks() + sd->quest_between;
-  Uint32 end_quest = start_quest + sd->quest_min
-      + rand() % (sd->quest_max - sd->quest_min + 1);
   printf("WorldUpdateModule #%d started\n", t_id);
   /* main loop */
   while (true) {
@@ -156,8 +158,7 @@ void WorldUpdateModule::run() {
       sd->send_start_quest = 0;
       sd->send_end_quest = 0;
 
-      if (start_time > start_quest) {
-        start_quest = end_quest + sd->quest_between;
+      if (num_iterations == quest_begin) {
         sd->quest_pos.x = (rand() % sd->wm.n_regs.x)
             * sd->wm.regmin.x + MAX_CLIENT_VIEW;
         sd->quest_pos.y = (rand() % sd->wm.n_regs.y)
@@ -169,19 +170,17 @@ void WorldUpdateModule::run() {
                << sd->wm.getRegionByLocation(sd->quest_pos)->t_id << ")"
                << endl;
           tracepoint(trace_LB,tp_quest_begin);
-          int tid = sd->wm.getRegionByLocation(sd->quest_pos)->t_id;
-          tracepoint(trace_LB, tp_quest_manager, tid);
         }
       }
-      if (start_time > end_quest) {
+      if (num_iterations == quest_end) {
         sd->wm.rewardPlayers(sd->quest_pos);
-        end_quest = start_quest + sd->quest_min
-            + rand() % (sd->quest_max - sd->quest_min + 1);
         sd->send_end_quest = 1;
-        if (sd->display_quests)
+        if (sd->display_quests) {
           printf("Quest over\n");
           tracepoint(trace_LB,tp_quest_end);
+        }
       }
+      num_iterations++;
     }
 
     SDL_WaitBarrier(barrier);
@@ -248,6 +247,11 @@ void WorldUpdateModule::run() {
     tracepoint(trace_LB, tp_third_stage, (int ) this->avg_num_update_sent,
                (int ) this->avg_time_send_update);
     SDL_WaitBarrier(barrier);
+
+    // Stop after 3000 iterations of the loop.
+    if (t_id == 0 && num_iterations >= max_num_iterations) {
+      exit(EXIT_SUCCESS);
+    }
   }
 }
 

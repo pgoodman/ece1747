@@ -468,14 +468,14 @@ void WorldMap::balance_spread() {
       if(regions.empty())
       {
         goto end;
-  //        return;
       }
-      //if the number of players is greater than the targeted avg
-      //we skip to the next thread
-      if( num_players[tid] < targeted_avg)
+
+      auto oregion_it = regions.begin();
+      auto region = oregion_it->r;
+
+      // Try to assign a region to a thread.
+      if( (num_players[tid] + region->num_players) <= targeted_avg)
       {
-        auto oregion_it = regions.begin();
-        auto region = oregion_it->r;
         reassignRegion(region, tid);
         num_players[tid] += region->num_players;
         regions.erase(oregion_it);

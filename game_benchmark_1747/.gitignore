@@ -4,4 +4,8 @@ server
 *.log
 .project
 .cproject
+*.csv
+*.dat
+*.odt
+*.pyc
 
