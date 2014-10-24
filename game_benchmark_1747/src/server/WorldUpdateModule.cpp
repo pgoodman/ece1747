@@ -72,6 +72,9 @@ void WorldUpdateModule::run() {
   MessageWithSerializator *ms = NULL;
 
   printf("WorldUpdateModule #%d started\n", t_id);
+
+  tracepoint(trace_LB, tp_thread_begin, (int) t_id);
+
   /* main loop */
   while (true) {
     double num_req_recvd = 0;

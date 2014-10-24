@@ -77,6 +77,22 @@ TRACEPOINT_LOGLEVEL(
 	TRACE_WARNING
 )
 
+//Timing for the first stage that is receiving
+//requests from the clients
+TRACEPOINT_EVENT(
+  trace_LB,
+  tp_thread_begin,
+  TP_ARGS(int, tid),
+  TP_FIELDS(
+    ctf_integer(int, tid , tid)
+  )
+)
+
+TRACEPOINT_LOGLEVEL(
+  trace_LB,
+  tp_thread_begin,
+  TRACE_WARNING)
+
 
 //Timing for the first stage that is receiving
 //requests from the clients
