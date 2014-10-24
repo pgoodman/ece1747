@@ -515,9 +515,20 @@ void WorldMap::balance() {
     return;
 
   if (!strcmp(sd->algorithm_name, "lightest"))
-    return balance_lightest();
+  {
+    balance_lightest();
+    int tid = getRegionByLocation(sd->quest_pos)->t_id;
+    tracepoint(trace_LB, tp_quest_manager, tid);
+    return;
+  }
+    
   if (!strcmp(sd->algorithm_name, "spread"))
-    return balance_spread();
+  {
+    balance_spread();
+    int tid = getRegionByLocation(sd->quest_pos)->t_id;
+    tracepoint(trace_LB, tp_quest_manager, tid);
+    return;
+  }
 
   printf("Algorithm %s is not implemented.\n", sd->algorithm_name);
   return;

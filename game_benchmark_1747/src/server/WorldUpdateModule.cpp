@@ -168,6 +168,9 @@ void WorldUpdateModule::run() {
                << " (handled by tid:"
                << sd->wm.getRegionByLocation(sd->quest_pos)->t_id << ")"
                << endl;
+          tracepoint(trace_LB,tp_quest_begin);
+          int tid = sd->wm.getRegionByLocation(sd->quest_pos)->t_id;
+          tracepoint(trace_LB, tp_quest_manager, tid);
         }
       }
       if (start_time > end_quest) {
@@ -177,6 +180,7 @@ void WorldUpdateModule::run() {
         sd->send_end_quest = 1;
         if (sd->display_quests)
           printf("Quest over\n");
+          tracepoint(trace_LB,tp_quest_end);
       }
     }
 

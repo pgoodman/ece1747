@@ -125,5 +125,47 @@ TRACEPOINT_LOGLEVEL(
 	trace_LB,
   tp_overloaded,
 	TRACE_WARNING)
+
+//thread managing region where the quest is located
+TRACEPOINT_EVENT(
+	trace_LB,
+	tp_quest_manager,
+	TP_ARGS(int, tid),
+	TP_FIELDS(
+		ctf_integer(int,tid , tid)
+	)
+)
+
+TRACEPOINT_LOGLEVEL(
+	trace_LB,
+  tp_quest_manager,
+	TRACE_WARNING)
+
+//Quest duration
+TRACEPOINT_EVENT(
+	trace_LB,
+	tp_quest_begin,
+	TP_ARGS(),
+	TP_FIELDS(
+	)
+)
+
+TRACEPOINT_LOGLEVEL(
+	trace_LB,
+  tp_quest_begin,
+	TRACE_WARNING)
+
+TRACEPOINT_EVENT(
+	trace_LB,
+	tp_quest_end,
+	TP_ARGS(),
+	TP_FIELDS(
+	)
+)
+
+TRACEPOINT_LOGLEVEL(
+	trace_LB,
+  tp_quest_end,
+	TRACE_WARNING)
 #endif
 #include <lttng/tracepoint-event.h>
