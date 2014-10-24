@@ -52,6 +52,7 @@ SDL_barrier *_barr) {
  ***************************************************************************************************/
 
 int num_iterations = 0;
+int last_quest_tid = -1;
 const int max_num_iterations = 1000;
 const int quest_begin = 300;
 const int quest_end = 700;
@@ -164,21 +165,19 @@ void WorldUpdateModule::run() {
         sd->quest_pos.y = (rand() % sd->wm.n_regs.y)
             * sd->wm.regmin.y + MAX_CLIENT_VIEW;
         sd->send_start_quest = 1;
-        if (sd->display_quests) {
-          cout << "New quest " << sd->quest_pos.x << "," << sd->quest_pos.y
-               << " (handled by tid:"
-               << sd->wm.getRegionByLocation(sd->quest_pos)->t_id << ")"
-               << endl;
-          tracepoint(trace_LB,tp_quest_begin);
-        }
       }
-      if (num_iterations == quest_end) {
+      if (num_iterations >= quest_begin &&
+          num_iterations < quest_end) {
+
+        int tid = sd->wm.getRegionByLocation(sd->quest_pos)->t_id;
+        if (last_quest_tid != tid) {
+          tracepoint(trace_LB, tp_quest_manager, tid);
+          last_quest_tid = tid;
+        }
+
+      } else if (num_iterations == quest_end) {
         sd->wm.rewardPlayers(sd->quest_pos);
         sd->send_end_quest = 1;
-        if (sd->display_quests) {
-          printf("Quest over\n");
-          tracepoint(trace_LB,tp_quest_end);
-        }
       }
       num_iterations++;
     }

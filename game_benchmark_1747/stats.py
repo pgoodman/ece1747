@@ -38,6 +38,11 @@ def top5proc():
     stage_1 = 0
     stage_2 = 1
     first_time = 0
+
+    tid_to_vtid = []
+    quest_handlers = []
+    max_value = -1
+
     # iterate events
     for event in col.events:
         # keep only `sched_switch` events
@@ -51,13 +56,25 @@ def top5proc():
             it.time = max(event.timestamp - first_time, 0)
             it.num_req = event['num_req']
             it.proc_time = event['proc_time']
-            threads[event['vtid']].append(it)
+            vtid = event['vtid']
+            threads[vtid].append(it)
+            if vtid not in tid_to_vtid:
+                tid_to_vtid.append(vtid)
         elif "third_stage" in event.name:
             it = threads[event['vtid']][-1]
             it.num_update = event['num_update']
             it.sent_time = event['sent_time']
         elif "quest_manager" in event.name:
-            pass
+            tid = event['tid']
+            vtid = tid_to_vtid[int(tid)]
+            time = len(threads[vtid])
+            quest_handlers.append((time, vtid, tid))
+    
+    # Force the end of the quest.
+    quest_handlers.append([700, -1, -1])
+
+    for h in quest_handlers:
+        print(h)
 
     quest_writer = csv.writer(open("quests.dat", "w"))
     num_req_writer = csv.writer(open("num_req.dat", "w"))
@@ -66,27 +83,45 @@ def top5proc():
     sent_time_writer = csv.writer(open("sent_time.dat", "w"))
 
     num_events = min(len(events) for events in threads.values())
-    tids = list(threads.keys())
+    
 
+    quest_events = []
+    for i in range(len(threads)):
+        quest_events.append(['?'] * num_events)
+
+    vtids = list(threads.keys())
+    vtid_to_tid = dict((v,k) for k,v in enumerate(tid_to_vtid))
+    
+    for i, handler in enumerate(quest_handlers):
+        if i + 1 == len(quest_handlers):
+            break
+        next_handler = quest_handlers[i + 1]
+        tid = handler[2]
+
+        for t in range(handler[0], next_handler[0]):
+            quest_events[tid][t] = 0
 
     for i in range(num_events):
         num_req = [i]
         proc_time = [i]
         num_update = [i]
         sent_time = [i]
+        quest = [i]
         time = 0
-        for tid in tids:
-            it = threads[tid][i]
+        for vtid in vtids:
+            it = threads[vtid][i]
             time = time or it.time
             num_req.append(it.num_req)
             proc_time.append(it.proc_time)
             num_update.append(it.num_update)
             sent_time.append(it.sent_time)
+            quest.append(quest_events[vtid_to_tid[vtid]][i])
 
         num_req_writer.writerow(num_req)
         proc_time_writer.writerow(proc_time)
         num_update_writer.writerow(num_update)
         sent_time_writer.writerow(sent_time)
+        quest_writer.writerow(quest)
 
 if __name__ == '__main__':
     top5proc()

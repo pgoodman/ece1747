@@ -474,7 +474,8 @@ void WorldMap::balance_spread() {
       auto region = oregion_it->r;
 
       // Try to assign a region to a thread.
-      if( (num_players[tid] + region->num_players) <= targeted_avg)
+      if(!num_players[tid] ||
+         targeted_avg < (num_players[tid] + region->num_players))
       {
         reassignRegion(region, tid);
         num_players[tid] += region->num_players;
@@ -517,16 +518,12 @@ void WorldMap::balance() {
   if (!strcmp(sd->algorithm_name, "lightest"))
   {
     balance_lightest();
-    int tid = getRegionByLocation(sd->quest_pos)->t_id;
-    tracepoint(trace_LB, tp_quest_manager, tid);
     return;
   }
     
   if (!strcmp(sd->algorithm_name, "spread"))
   {
     balance_spread();
-    int tid = getRegionByLocation(sd->quest_pos)->t_id;
-    tracepoint(trace_LB, tp_quest_manager, tid);
     return;
   }
 
