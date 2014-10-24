@@ -9,7 +9,11 @@ set key default
 set key bottom right
 
 # Axis scaling
-set   autoscale                        # scale axes automatically
+set yrange [0:40]
+set ytics 5
+set xrange [0:1000]
+set xtics 100
+
 unset log                              # remove any log-scaling
 unset label                            # remove any previous labels
 
