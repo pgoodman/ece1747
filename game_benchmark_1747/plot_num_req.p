@@ -2,7 +2,7 @@ set datafile separator ","
 
 # Output file type and location
 set term png
-set output '/tmp/num_req.png'
+set output out_file
 
 # Legend location
 set key default
