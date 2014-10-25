@@ -53,9 +53,9 @@ SDL_barrier *_barr) {
 
 int num_iterations = 0;
 int last_quest_tid = -1;
-const int max_num_iterations = 1000;
+const int max_num_iterations = 2000;
 const int quest_begin = 300;
-const int quest_end = 700;
+const int quest_end = 1700;
 
 void WorldUpdateModule::run() {
   Uint32 start_time, processing_begin;
