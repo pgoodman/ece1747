@@ -3,6 +3,9 @@ from collections import Counter,  defaultdict
 import babeltrace
 import csv
 
+duration = 2000
+q_begin = 300
+q_end = 1700
 class Iteration(object):
     __slots__ = ('num_req', 'proc_time', 'num_update', 'sent_time')
     def __init__(self):
@@ -67,8 +70,8 @@ def process_trace():
     
     # Add on a sentinel quest handler event, that makes sure that the below
     # `for` loop that pokes in `0`s into `quest_events` will always have events
-    # up until iteration `700`.
-    quest_handlers.append([700, -1])
+    # up until iteration where the quest is ending.
+    quest_handlers.append([q_end, -1])
 
     # Open up CSV writers for each of the various kinds of charts that we
     # want to show.
@@ -98,8 +101,8 @@ def process_trace():
         # non-`?` data points.
         next_handler = quest_handlers[i + 1]
         vtid = handler[1]
-        start_time = max(handler[0], 300)
-        end_time = min(next_handler[0], 700)
+        start_time = max(handler[0], q_begin)
+        end_time = min(next_handler[0], q_end)
 
         for time in range(start_time, end_time):
             quest_events[vtid][time] = 0
