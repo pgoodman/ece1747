@@ -79,9 +79,7 @@ def process_trace():
     sent_time_writer = csv.writer(open("sent_time.dat", "w"))
 
     # Double check that we have exactly 1000 events.
-    num_events = min(len(events) for events in threads.values())
-    assert 1000 == num_events
-    
+    num_events = min(len(events) for events in threads.values())    
     vtids = list(threads.keys())
 
     # Fill in every event as "missing".

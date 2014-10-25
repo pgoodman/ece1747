@@ -11,7 +11,7 @@ set key bottom right
 # Axis scaling
 set yrange [0:40]
 set ytics 5
-set xrange [0:1000]
+set xrange [0:2000]
 set xtics 100
 
 unset log                              # remove any log-scaling
@@ -22,7 +22,7 @@ set xlabel "Time"
 set ylabel "Number of Requests"
 
 # Add in a rectangle behind the lines that highlights the times of the quest
-set obj 1 rectangle from "300",graph 0 to "700",graph 1 fc lt -1 fs solid 0.15 noborder behind
+set obj 1 rectangle from "300",graph 0 to "2700",graph 1 fc lt -1 fs solid 0.15 noborder behind
 
 set datafile missing "?"
 
