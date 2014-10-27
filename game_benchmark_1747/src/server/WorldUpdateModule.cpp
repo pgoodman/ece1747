@@ -77,7 +77,7 @@ void WorldUpdateModule::run() {
 
   /* main loop */
   while (true) {
-    double num_req_recvd = 0;
+    int num_req_recvd = 0;
     double processing_total = 0;
     start_time = SDL_GetTicks();
     timeout = sd->regular_update_interval;
@@ -124,32 +124,21 @@ void WorldUpdateModule::run() {
       processing_total += (SDL_GetTicks() - processing_begin);
       delete m;
       timeout = sd->regular_update_interval - (SDL_GetTicks() - start_time);
+      //printf("1 %d\n", processing_total);
       if (((int) timeout) < 0)
       {
         timeout = 0;
+        break;
       }
     }
 
-    //Moving average for the number of requests received per thread
-    if (this->avg_num_req_recvd <= 0) {
-      this->avg_num_req_recvd = num_req_recvd;
-    } else {
-      this->avg_num_req_recvd = (this->avg_num_req_recvd * 0.95)
-          + (num_req_recvd * 0.05);
-    }
+    //Number of requests received per thread
 
     //Moving average of the time spent processing the requests per thread
     //one tick is 1 msec, so we multply by 1000 to get it in usec
-    processing_total *= 1000;
-    if (avg_time_proc_req <= 0) {
-      avg_time_proc_req = processing_total;
-    } else {
-      avg_time_proc_req = (avg_time_proc_req * 0.95)
-          + (processing_total * 0.05);
-    }
 
-    tracepoint(trace_LB, tp_first_stage, (int ) avg_num_req_recvd,
-               (int ) avg_time_proc_req);
+    tracepoint(trace_LB, tp_first_stage, (int ) num_req_recvd,
+               (int ) processing_total);
 
     SDL_WaitBarrier(barrier);
 
@@ -192,7 +181,7 @@ void WorldUpdateModule::run() {
     bool has_sla_violation = false;
     double num_sla_violations = 0.0;
     int num_update_sent = 0;
-    double sending_time = 0;
+    int sending_time = 0;
     /* send updates to clients (map state) */
     bucket->start();
     while ((p = bucket->next()) != NULL) {
@@ -227,27 +216,12 @@ void WorldUpdateModule::run() {
 
     sd->num_sla_violations[t_id] = num_sla_violations;
 
-    //Moving average for the number of requests received per thread
-    if (this->avg_num_update_sent <= 0) {
-      this->avg_num_update_sent = num_update_sent;
-    } else {
-      this->avg_num_update_sent = (this->avg_num_update_sent * 0.95)
-          + (num_update_sent * 0.05);
-    }
-
     //Moving average of the time spent processing the requests per thread
     //one tick is 1 msec, so we multply by 1000 to get it in usec
     sending_time = SDL_GetTicks() - start_time;
-    sending_time *= 1000;
-    if (this->avg_time_send_update <= 0) {
-      this->avg_time_send_update = sending_time;
-    } else {
-      this->avg_time_send_update = (this->avg_time_send_update * 0.95)
-          + (sending_time * 0.05);
-    }
 
-    tracepoint(trace_LB, tp_third_stage, (int ) this->avg_num_update_sent,
-               (int ) this->avg_time_send_update);
+    tracepoint(trace_LB, tp_third_stage, (int ) num_update_sent,
+               (int ) sending_time);
     SDL_WaitBarrier(barrier);
 
     // Stop after 3000 iterations of the loop.
