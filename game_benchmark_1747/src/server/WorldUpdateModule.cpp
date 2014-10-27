@@ -55,7 +55,7 @@ int num_iterations = 0;
 int last_quest_tid = -1;
 const int max_num_iterations = 2000;
 const int quest_begin = 300;
-const int quest_end = 1700;
+const int quest_end = 1300;
 
 void WorldUpdateModule::run() {
   Uint32 start_time, processing_begin;

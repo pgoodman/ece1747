@@ -5,7 +5,7 @@ import csv
 
 duration = 2000
 q_begin = 300
-q_end = 1700
+q_end = 1300
 class Iteration(object):
     __slots__ = ('num_req', 'proc_time', 'num_update', 'sent_time')
     def __init__(self):
