@@ -1,5 +1,5 @@
 ./kill_lttng.sh
-lttng create "$1-4t-50rui-10ol-1000p"
+lttng create "$1-4t-16x16r-50rui-10ol-1000p"
 lttng enable-event -a -u
 lttng add-context -u -t vtid
 lttng start

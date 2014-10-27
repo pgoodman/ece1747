@@ -128,7 +128,7 @@ void WorldUpdateModule::run() {
       if (((int) timeout) < 0)
       {
         timeout = 0;
-        break;
+        //break;
       }
     }
 
