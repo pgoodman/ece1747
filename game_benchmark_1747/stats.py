@@ -6,6 +6,12 @@ import csv
 duration = 2000
 q_begin = 300
 q_end = 1300
+
+def moving_average(old_ls, new):
+    if not old_ls:
+        return new
+    return int(old_ls[-1] * 0.95 + new * 0.05)
+
 class Iteration(object):
     __slots__ = ('num_req', 'proc_time', 'num_update', 'sent_time')
     def __init__(self):
@@ -118,10 +124,10 @@ def process_trace():
         # Aggregate info from each thread.
         for vtid in vtids:
             it = threads[vtid][time]
-            num_req.append(it.num_req)
-            proc_time.append(it.proc_time)
-            num_update.append(it.num_update)
-            sent_time.append(it.sent_time)
+            num_req.append(moving_average(num_req, it.num_req))
+            proc_time.append(moving_average(proc_time, it.proc_time))
+            num_update.append(moving_average(num_update, it.num_update))
+            sent_time.append(moving_average(sent_time, it.sent_time))
             quest.append(quest_events[vtid][time])
 
         # Dump aggregated rows of data.
