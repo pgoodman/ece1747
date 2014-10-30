@@ -8,11 +8,15 @@ set output out_file
 set key default
 set key top left
 
+# Size ratio
+set terminal png size 1000,400
+set size ratio 0.3
+
 # Axis scaling
 set yrange [0:1200]
 set ytics 100
 set xrange [0:duration]
-set xtics 200
+set xtics 100
 
 unset log                              # remove any log-scaling
 unset label                            # remove any previous labels
