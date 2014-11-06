@@ -25,7 +25,7 @@ OUT_DIR = ..
 
 #***********************************************************
     TARGET = moldyn
-    OBJS   = moldyn.o
+    OBJS   = moldyn.o transaction.o
 #***********************************************************
 
 $(TARGET) : $(OBJS)
@@ -39,4 +39,5 @@ moldyn.o   : moldyn.cc Makefile
 
 #***********************************************************
 clean:
-	/bin/rm -f $(OBJS) $(OUT_DIR)/$(TARGET)
+	rm -f $(OBJS) $(OUT_DIR)/$(TARGET)
+	

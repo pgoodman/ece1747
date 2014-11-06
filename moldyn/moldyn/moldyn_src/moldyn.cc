@@ -5,7 +5,8 @@
 #include <immintrin.h>
 #include <stdio.h>
 
-#include "./molecule.h"
+#include "molecule.h"
+#include "transaction.h"
 
 #include <mutex>
 #include <thread>
@@ -14,11 +15,10 @@
 //using namespace std;
 
 std::vector<std::thread> threads;
-std::mutex transaction;
 
-#define BEGIN_TRANSACTION() transaction.lock()
-
-#define END_TRANSACTION() transaction.unlock()
+//std::mutex transaction;
+//#define BEGIN_TRANSACTION() transaction.lock()
+//#define END_TRANSACTION() transaction.unlock()
 
 #define CREATE_TM_THREADS(...)
 #define DESTROY_TM_THREADS(...)
@@ -473,13 +473,12 @@ int BuildNeigh( void* arg, int id ) {
         continue;
       }
       
-      BEGIN_TRANSACTION();
-
-      inter[INDX(ninter,0)] = i;
-      inter[INDX(ninter,1)] = j;
-      ++ninter;   
-
-      END_TRANSACTION();
+      {
+        Transaction t(ninter);
+        inter[INDX(ninter,0)] = i;
+        inter[INDX(ninter,1)] = j;
+        ++ninter;
+      }
 
       if ( ninter >= MAXINTERACT) { 
         perror("MAXINTERACT limit");
@@ -562,17 +561,16 @@ int ComputeForces( void* arg, int id ) {
       forcey = yy*r148;
       forcez = zz*r148;
 
-      BEGIN_TRANSACTION();
-      
-      molecules[i].f_x  += forcex ;
-      molecules[i].f_y  += forcey ;
-      molecules[i].f_z  += forcez ;
+      {
+        Transaction t(molecules[i], molecules[k]);
+        molecules[i].f_x  += forcex ;
+        molecules[i].f_y  += forcey ;
+        molecules[i].f_z  += forcez ;
 
-      molecules[k].f_x  -= forcex ;
-      molecules[k].f_y  -= forcey ;
-      molecules[k].f_z  -= forcez ;
-
-      END_TRANSACTION();
+        molecules[k].f_x  -= forcex ;
+        molecules[k].f_y  -= forcey ;
+        molecules[k].f_z  -= forcez ;
+      }
  
       vir_tmp  -= rd*r148 ;
       epot_tmp += (rrd6 - rrd3);
@@ -580,12 +578,11 @@ int ComputeForces( void* arg, int id ) {
     }
   }
   
-  BEGIN_TRANSACTION();
- 
-  vir  += vir_tmp ;
-  epot += epot_tmp;
-
-  END_TRANSACTION();
+  {
+    Transaction t(vir, epot);
+    vir  += vir_tmp ;
+    epot += epot_tmp;
+  }
 
   return 0;
 }
@@ -638,12 +635,9 @@ int ComputeKE( void* arg, int id ){
     sum = sum + vh[ IND(1,i) ] * vh[ IND(1,i) ]; 
     sum = sum + vh[ IND(2,i) ] * vh[ IND(2,i) ]; 
   } 
-    
-  BEGIN_TRANSACTION();
-  
-  ekin += sum/timeStepSq ;
 
-  END_TRANSACTION();
+  Transaction t(ekin);
+  ekin += sum/timeStepSq ;
 
   return 0;
 }
@@ -680,12 +674,9 @@ int ComputeAvgVel( void* arg, int id ) {
     velocity += sq ;
   }  
 
-  BEGIN_TRANSACTION();
-
+  Transaction t(vel, count);
   vel += (velocity/timeStep);
   count += counter;
-
-  END_TRANSACTION();
 
   return 0;
 }
