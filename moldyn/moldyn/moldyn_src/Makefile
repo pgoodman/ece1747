@@ -15,11 +15,10 @@ VERSION = -DSUPER
 #    VERSION = -DVERSION_DYNAMIC
 #    export VERSION
 
-CXXFLAGS := $(DEBUG) $(VERSION)
+CXXFLAGS := $(DEBUG) $(VERSION) -std=c++11 -stdlib=libc++
 LDFLAGS = -lm -lpthread -lrt
 
-LIBTM_DIR = ../..
-OUT_DIR = ../..
+OUT_DIR = ..
 
 .c.o:
 	$(CXX) $(CXXFLAGS) -c $*.cc 

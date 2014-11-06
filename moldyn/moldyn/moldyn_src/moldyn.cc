@@ -7,11 +7,32 @@
 
 #include "./molecule.h"
 
-#define BEGIN_TRANSACTION()
-#define END_TRANSACTION()
+#include <mutex>
+#include <thread>
+#include <vector>
+
+//using namespace std;
+
+std::vector<std::thread> threads;
+std::mutex transaction;
+
+#define BEGIN_TRANSACTION() transaction.lock()
+
+#define END_TRANSACTION() transaction.unlock()
+
 #define CREATE_TM_THREADS(...)
 #define DESTROY_TM_THREADS(...)
-#define PARALLEL_EXECUTE(__n, __func, __data) do{for(int __i=0; __i < __n; ++__i) __func(__data, __i); }while(0)
+#define PARALLEL_EXECUTE(n, func, data) \
+  do{ \
+    for(int __i=0; __i < n; ++__i) { \
+      auto __l = [=] () { func(data, __i); };\
+      threads.push_back(std::thread(__l)); \
+    } \
+    for (auto &__t : threads) \
+      __t.join(); \
+    threads.clear(); \
+  } while(0)
+
 #define TM_INIT()
 
 #define LOCAL       /* Such a function that changes no global vars */
