@@ -22,24 +22,12 @@ LDFLAGS = -lm -lpthread -lrt
 
 OUT_DIR = .
 
-.c.o:
-	$(CXX) $(CXXFLAGS) -c $*.cc 
+all: moldyn.cc transaction.o pool.h
+	$(CXX) $(CXXFLAGS) -o moldyn moldyn.cc transaction.o $(LDFLAGS)
 
-#***********************************************************
-    TARGET = moldyn
-    OBJS   = moldyn.o transaction.o
-#***********************************************************
+transaction.o:  transaction.cc transaction.h
+	$(CXX) $(CXXFLAGS) -c -o $@ transaction.cc
 
-$(TARGET) : $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(OUT_DIR)/$@ $(OBJS) $(LDFLAGS)
-
-#***********************************************************
-#    Dependencies
-#***********************************************************
-
-moldyn.o   : moldyn.cc Makefile
-
-#***********************************************************
 clean:
-	rm -f $(OBJS) $(OUT_DIR)/$(TARGET)
+	rm -f transaction.o moldyn
 	
