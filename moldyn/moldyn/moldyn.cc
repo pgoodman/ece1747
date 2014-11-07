@@ -28,7 +28,7 @@
       auto __l = [=] () { func(data, __i); };\
       pool.Enqueue(__l); \
     } \
-    pool.Barrier(); \
+    pool.AllThreadsDone(); \
   } while(0)
 
 #define TM_INIT()
