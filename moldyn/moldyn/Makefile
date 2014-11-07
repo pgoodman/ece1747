@@ -10,7 +10,7 @@ CXX = clang++
 #  DEBUG = -Wall -O3 #-DPRINT_COORDINATES
 #endif
 
-DEBUG = -O0 -g3
+DEBUG = -O0 -g3 -Wall
 
 #Application options
 VERSION = -DSUPER

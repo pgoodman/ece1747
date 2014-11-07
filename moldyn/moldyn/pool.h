@@ -60,7 +60,6 @@ class ThreadPool {
   inline void Enqueue(Func func) {
     taskQueueMutex.lock();
     tasks.push_back(func);
-    num_tasks_ready++;
     goSem.Post();
     //std::cout<<"goSem:post"<<std::endl;
     taskQueueMutex.unlock();
@@ -88,7 +87,6 @@ class ThreadPool {
       }
 //      std::cout<<"goSem:wait"<<std::endl;
       taskQueueMutex.lock();
-      num_tasks_ready--;
       std::function<void(void)> task= tasks[0];
       tasks.pop_front();
       taskQueueMutex.unlock();
@@ -105,13 +103,7 @@ class ThreadPool {
   std::vector<std::thread> threads;
   Semaphore goSem;
   Semaphore doneSem;
-  std::mutex goMutex;
-  int num_tasks_ready;
-  std::mutex doneMutex;
-  int num_tasks_done;
   std::mutex taskQueueMutex;
-  std::condition_variable goCv;
-  std::condition_variable doneCv;
   std::deque<std::function<void(void)>> tasks;
 
   bool done;
