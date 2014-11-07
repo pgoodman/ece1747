@@ -18,10 +18,10 @@ class Transaction {
  public:
 
   template <typename...Ts>
-  inline Transaction(Ts&... addresses)
+  inline explicit Transaction(Ts&... addresses)
       : Transaction({&addresses...}) {}
 
-  inline Transaction(std::initializer_list<void *> addresses) {
+  inline explicit Transaction(std::initializer_list<void *> addresses) {
     max_index = &(indices[0]);
     for (auto address : addresses) {
       *max_index++ = HashAddress(address);

@@ -1,58 +1,45 @@
-####################################################################################################
-##
-## CONFIGURATION
-##
-####################################################################################################
-
-## Compilation parameters
+#***********************************************************/
+# File :  Makefile  (for  moldyn.c)
+# Created  :  Shamik Sharma,
+# Modified :  Mike Dai Wang 
+#***********************************************************
 CC = clang
 CXX = clang++
 
-ifeq ($(DEBUG), )
-	DEBUG = -O3
-endif
+#ifeq ($(DEBUG), )
+#  DEBUG = -Wall -O3 #-DPRINT_COORDINATES
+#endif
 
-CXXFLAGS := -Wall $(DEBUG) $(VERSION) $(OPTIONS) -std=c++11 -stdlib=libc++ -D_GNU_SOURCE
-LDFLAGS = -lpthread
+DEBUG = -O0 -g3
 
+#Application options
+VERSION = -DSUPER
+#    VERSION = -DVERSION_DYNAMIC
+#    export VERSION
 
-## Source and binary files
-BIN_DIR   =   build
-SRC_DIR   =   moldyn_src
-APP_DIR   =   moldyn_src
+CXXFLAGS := $(DEBUG) $(VERSION) -std=c++11 -stdlib=libc++
+LDFLAGS = -lm -lpthread -lrt
 
-C_SRCS    =  # $(wildcard $(SRC_DIR)/*.c)
-C_OBJS    =   $(patsubst $(SRC_DIR)/%.c,$(BIN_DIR)/%.o,$(C_SRCS)) 
-CC_SRCS   =   $(wildcard $(SRC_DIR)/*.cc)
-CC_OBJS   =   $(patsubst $(SRC_DIR)/%.cc,$(BIN_DIR)/%.o,$(CC_SRCS)) 
+OUT_DIR = .
 
+.c.o:
+	$(CXX) $(CXXFLAGS) -c $*.cc 
 
-all: init Makefile
+#***********************************************************
+    TARGET = moldyn
+    OBJS   = moldyn.o transaction.o
+#***********************************************************
 
-init:
-					mkdir -p $(BIN_DIR)
-					@echo $(C_OBJS)
-					@echo $(CC_OBJS)
+$(TARGET) : $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $(OUT_DIR)/$@ $(OBJS) $(LDFLAGS)
 
-# For C source files
-$(BIN_DIR)/%.o: $(SRC_DIR)/%.c Makefile
-	${CXX} ${CXXFLAGS} -o $@ -c $<
+#***********************************************************
+#    Dependencies
+#***********************************************************
 
-$(BIN_DIR)/%.o: $(SRC_DIR)/%.cc Makefile
-	${CXX} ${CXXFLAGS} -o $@ -c $<
+moldyn.o   : moldyn.cc Makefile
 
-default: all 
-
-moldyn:	Makefile
-						$(MAKE) -C moldyn_src moldyn
-
+#***********************************************************
 clean:
-		-rm -f -R $(BIN_DIR)
-		-rm -f 
-
-clean_moldyn:
-		$(MAKE) -C apps/moldyn clean
-
-clean_all:	clean clean_moldyn
-
-.PHONY: all clean
+	rm -f $(OBJS) $(OUT_DIR)/$(TARGET)
+	

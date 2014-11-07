@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #include "molecule.h"
+#include "pool.h"
 #include "transaction.h"
 
 #include <mutex>
@@ -13,8 +14,7 @@
 #include <vector>
 
 //using namespace std;
-
-std::vector<std::thread> threads;
+//std::vector<std::thread> threads;
 
 //std::mutex transaction;
 //#define BEGIN_TRANSACTION() transaction.lock()
@@ -26,11 +26,9 @@ std::vector<std::thread> threads;
   do{ \
     for(int __i=0; __i < n; ++__i) { \
       auto __l = [=] () { func(data, __i); };\
-      threads.push_back(std::thread(__l)); \
+      pool.Enqueue(__l); \
     } \
-    for (auto &__t : threads) \
-      __t.join(); \
-    threads.clear(); \
+    pool.Barrier(); \
   } while(0)
 
 #define TM_INIT()
@@ -722,6 +720,8 @@ void dump_values(char *s) {
 }
 
 void do_libtm_work(void) {
+  ThreadPool pool(static_cast<size_t>(NTHREADS));
+
   int tstep, i;
   for ( tstep=0; tstep< NUMBER_TIMESTEPS; tstep++) {
     PARALLEL_EXECUTE( NTHREADS, UpdateCoordinates, NULL );
@@ -806,11 +806,7 @@ int main( int argc, char *argv[]) {
   InitVelocities (INPARAMS timeStep);
   InitForces     ();
  
-  CREATE_TM_THREADS( NTHREADS );
-
   do_libtm_work();
-
-  DESTROY_TM_THREADS( NTHREADS );
 
   printf("\n");
 
