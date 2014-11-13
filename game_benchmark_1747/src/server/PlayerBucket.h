@@ -67,7 +67,7 @@ public:
   Player* next();
 
   /* Copy */
-  void copyPlayers(list<Player*> *copy_list);
+  void copyPlayers(std::list<Player*> *copy_list);
 };
 
 #endif

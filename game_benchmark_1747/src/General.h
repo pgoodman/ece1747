@@ -31,12 +31,6 @@
 #include <time.h>
 #include <assert.h>
 
-/* Windows headers */
-#ifdef WIN32
-#include <windows.h>
-#include <set>
-#endif
-
 /* SDL headers */
 #include <SDL.h>
 #include <SDL_thread.h>
@@ -46,11 +40,6 @@
 #include "Settings.h"
 #include "Constants.h"
 #include "Structs.h"
-
-/* Namespaces */
-/***********************************************************************/
-
-using namespace std;
 
 /* Abstract classes */
 /***********************************************************************/

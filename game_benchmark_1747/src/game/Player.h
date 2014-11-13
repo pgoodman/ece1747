@@ -42,13 +42,10 @@ class Player {
  public:
   /* constructors / destructor */
   Player(IPaddress adr);
-  Player(char *data);
   ~Player();
 
  public:
   /* public methods */
-  char *playerData(); /* serialize player data */
-  int playerDataSize();
   void setName(char *name);
   double getDistance(Player* pl);
 

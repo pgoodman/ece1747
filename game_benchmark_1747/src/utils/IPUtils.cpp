@@ -19,7 +19,7 @@
 #include "IPUtils.h"
 
 bool resolveHost(IPaddress *addr, char *host_name) {
-  int port;
+  uint16_t port;
   bool result;
 
   if (addr == NULL || host_name == NULL)
@@ -29,9 +29,10 @@ bool resolveHost(IPaddress *addr, char *host_name) {
   char *ptr = strchr(host_name, ':');
   if (ptr != NULL) {
     *ptr = 0;
-    sscanf(ptr + 1, "%d", &port);
-  } else
+    sscanf(ptr + 1, "%hu", &port);
+  } else {
     port = 0;
+  }
 
   /* call DNS */
   result = true;

@@ -15,16 +15,16 @@ typedef struct {
 
   int t_id;	// = thread_id of the thread handling the players from this region
 
-  list<Player*> players;
+ std::list<Player*> players;
   int num_players;
 
-  list<GameObject*> objects;
+ std::list<GameObject*> objects;
 
   SDL_mutex *mutex;
 } Region;
 
 void initRegion(Region* r, Vector2D p, Vector2D sz, int _layout,
-                list<GameObject*> objs, list<Player*> pls);
+               std::list<GameObject*> objs,std::list<Player*> pls);
 
 int Region_addPlayer(Region* r, Player* p);
 void Region_removePlayer(Region* r, Player* p);

@@ -84,8 +84,8 @@ float RateMonitor::getAverage() {
   n = 0;
 
   /* return answer */
-  return (float) sum * 1000.0 / (float) interval;
+  return (float) sum * 1000.0f / (float) interval;
 #else
-  return 0;
+  return 0f;
 #endif
 }

@@ -40,7 +40,7 @@ class RecycleBin {
  protected:
   int nthreads; /* number of threads that must mark the object as disposable */
   SDL_mutex *mutex; /* synchronize access to the list */
-  list<Garbage*> gl; /* list of objects to be deleted */
+ std::list<Garbage*> gl; /* list of objects to be deleted */
 
  public:
   /* Constructor / Destructor */
@@ -53,7 +53,7 @@ class RecycleBin {
 
   /* delete all objects marked by all threads */
   void empty();
-  list<Garbage*> emptyWithList();
+ std::list<Garbage*> emptyWithList();
 
   /* mark all objects or only some of them */
   void accept();

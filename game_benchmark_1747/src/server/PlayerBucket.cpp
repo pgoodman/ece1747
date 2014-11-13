@@ -106,11 +106,11 @@ Player* PlayerBucket::next() {
  ***************************************************************************************************/
 
 /*
- * void copyPlayers(list<Player*> *copy_list)
+ * void copyPlayers(std::list<Player*> *copy_list)
  * - copy all the pointers fron the bucket in the given list
  */
 
-void PlayerBucket::copyPlayers(list<Player*> *copy_list) {
+void PlayerBucket::copyPlayers(std::list<Player*> *copy_list) {
   /* empty the list */
   if (copy_list == NULL)
     return;
@@ -120,7 +120,7 @@ void PlayerBucket::copyPlayers(list<Player*> *copy_list) {
   SDL_LockMutex(lock);
 
   /* copy all elements from this bucket to the list */
-  map<IPaddress, Player*, IpComparator>::iterator itb;
+ std::map<IPaddress, Player*, IpComparator>::iterator itb;
   for (itb = dic.begin(); itb != dic.end(); itb++)
     copy_list->insert(copy_list->end(), itb->second);
 

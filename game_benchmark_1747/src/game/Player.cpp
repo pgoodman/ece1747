@@ -35,32 +35,7 @@ Player::Player(IPaddress adr) {
   dir = 0;
   count = 0;
   mutex = SDL_CreateMutex();
-}
-
-Player::Player(char *data) {
-  char *ptr;
-  mutex = SDL_CreateMutex();
-  count = 0;
-
-  printf("create player struct from data\n");
-
-  /* copy player name */
-  memset(name, 0, MAX_PLAYER_NAME);
-  memcpy(name, data, MAX_PLAYER_NAME);
-
-  /* copy player address */
-  ptr = data + MAX_PLAYER_NAME;
-  memset(&address, 0, sizeof(address));
-  address.host = ((IPaddress*) ptr)->host;
-  address.port = ((IPaddress*) ptr)->port;
-
-  /* copy attributes */
-  ptr += sizeof(IPaddress);
-  pos.x = *((int*) ptr + 0);
-  pos.y = *((int*) ptr + 1);
-  life = *((int*) ptr + 2);
-  attr = *((int*) ptr + 3);
-  dir = *((int*) ptr + 4);
+  time_of_last_message = 0;
 }
 
 Player::~Player() {
@@ -68,36 +43,8 @@ Player::~Player() {
     SDL_DestroyMutex(mutex);
 }
 
-int Player::playerDataSize() {
-  return MAX_PLAYER_NAME + sizeof(IPaddress) + sizeof(int) * 5;
-}
-
-char *Player::playerData() {
-  char *buffer, *ptr;
-
-  printf("create data from player struct\n");
-
-  /* alocate buffer */
-  buffer = new char[playerDataSize()];
-  if (buffer == NULL)
-    return NULL;
-
-  /* copy data into the buffer */
-  memcpy(buffer, name, MAX_PLAYER_NAME);
-  ptr = buffer + MAX_PLAYER_NAME;
-  memcpy((IPaddress*) ptr, &address, sizeof(IPaddress));
-  ptr += sizeof(IPaddress);
-  *((int*) ptr + 0) = pos.x;
-  *((int*) ptr + 1) = pos.y;
-  *((int*) ptr + 2) = life;
-  *((int*) ptr + 3) = attr;
-  *((int*) ptr + 4) = dir;
-
-  return buffer;
-}
-
-void Player::setName(char *name) {
-  strncpy(this->name, name, MAX_PLAYER_NAME);
+void Player::setName(char *name_) {
+  strncpy(name, name_, MAX_PLAYER_NAME);
 }
 
 double Player::getDistance(Player* pl) {

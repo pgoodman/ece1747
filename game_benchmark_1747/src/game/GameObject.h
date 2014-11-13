@@ -29,11 +29,6 @@ class GameObject {
  public:
   /* constructors */
   GameObject();
-  GameObject(char *data);
-
-  /* public methods */
-  int objectDataSize();
-  char *objectData(); /* serialize player data */
 };
 
 #endif

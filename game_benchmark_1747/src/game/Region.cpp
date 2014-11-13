@@ -1,7 +1,7 @@
 #include "Region.h"
 
 void initRegion(Region* r, Vector2D p, Vector2D sz, int t_id,
-                list<GameObject*> objs, list<Player*> pls) {
+               std::list<GameObject*> objs,std::list<Player*> pls) {
   r->pos = p;
   r->size = sz;
 
@@ -15,19 +15,20 @@ void initRegion(Region* r, Vector2D p, Vector2D sz, int t_id,
 }
 
 int Region_addPlayer(Region* r, Player* p) {
-  list<GameObject*>::iterator oi;  //iterator for objects
-  for (oi = r->objects.begin(); oi != r->objects.end(); oi++)
-    if ((*oi)->pos.x == p->pos.x && (*oi)->pos.y == p->pos.y)
+  for (auto obj : r->objects) {
+    if (obj->pos.x == p->pos.x && obj->pos.y == p->pos.y) {
       return 0;
+    }
+  }
 
   SDL_LockMutex(r->mutex);
 
-  list<Player*>::iterator pi;  //iterator for players
-  for (pi = r->players.begin(); pi != r->players.end(); pi++)
-    if ((*pi)->pos.x == p->pos.x && (*pi)->pos.y == p->pos.y) {
+  for (auto player : r->players) {
+    if (player->pos.x == p->pos.x && player->pos.y == p->pos.y) {
       SDL_UnlockMutex(r->mutex);
       return 0;
     }
+  }
 
   r->players.push_front(p);
   r->num_players++;
@@ -40,7 +41,7 @@ int Region_addPlayer(Region* r, Player* p) {
 void Region_removePlayer(Region* r, Player* p) {
   SDL_LockMutex(r->mutex);
 
-  list<Player*>::iterator ip;  //iterator for players
+ std::list<Player*>::iterator ip;  //iterator for players
   for (ip = r->players.begin(); ip != r->players.end(); ip++) {
     if ((*ip) == p) {
       r->players.erase(ip);
@@ -68,7 +69,7 @@ bool Region_movePlayer(Region* r_old, Region* r_new, Player* p,
   }
 
   /* client tries to move over another player */
-  list<Player*>::iterator ip;
+ std::list<Player*>::iterator ip;
   for (ip = r_new->players.begin(); ip != r_new->players.end(); ip++)
     if ((*ip)->pos.x == n_pos.x && (*ip)->pos.y == n_pos.y) {
       goto movePlayer_end;
@@ -108,7 +109,7 @@ bool Region_movePlayer(Region* r_old, Region* r_new, Player* p,
 Player* Region_getPlayer(Region* r, Vector2D loc) {
   SDL_LockMutex(r->mutex);
 
-  list<Player*>::iterator ip;  //iterator for players
+ std::list<Player*>::iterator ip;  //iterator for players
   Player *p = NULL;
   for (ip = r->players.begin(); ip != r->players.end(); ip++) {
     if ((*ip)->pos.x == loc.x && (*ip)->pos.y == loc.y) {
@@ -122,7 +123,7 @@ Player* Region_getPlayer(Region* r, Vector2D loc) {
 }
 
 int Region_addObject(Region* r, GameObject *o, int min_res, int max_res) {
-  list<GameObject*>::iterator oi;  //iterator for objects
+ std::list<GameObject*>::iterator oi;  //iterator for objects
   for (oi = r->objects.begin(); oi != r->objects.end(); oi++)
     if ((*oi)->pos.x == o->pos.x && (*oi)->pos.y == o->pos.y)
       return 0;
@@ -135,7 +136,7 @@ int Region_addObject(Region* r, GameObject *o, int min_res, int max_res) {
 }
 
 GameObject* Region_getObject(Region* r, Vector2D loc) {
-  list<GameObject*>::iterator io;  //iterator for objects
+ std::list<GameObject*>::iterator io;  //iterator for objects
   GameObject *o = NULL;
   for (io = r->objects.begin(); io != r->objects.end(); io++) {
     if ((*io)->pos.x == loc.x && (*io)->pos.y == loc.y) {
@@ -147,14 +148,14 @@ GameObject* Region_getObject(Region* r, Vector2D loc) {
 }
 
 void Region_regenerateObjects(Region* r, int max_res) {
-  list<GameObject*>::iterator io;  //iterator for objects
+ std::list<GameObject*>::iterator io;  //iterator for objects
   for (io = r->objects.begin(); io != r->objects.end(); io++)
     if ((*io)->quantity < max_res)
       (*io)->quantity++;
 }
 
 void Region_rewardPlayers(Region* r, int bonus, int max_life) {
-  list<Player*>::iterator ip;  //iterator for players
+ std::list<Player*>::iterator ip;  //iterator for players
   for (ip = r->players.begin(); ip != r->players.end(); ip++)
     (*ip)->life = min((*ip)->life + bonus, max_life);
 }

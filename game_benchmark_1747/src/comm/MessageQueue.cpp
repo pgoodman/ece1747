@@ -25,7 +25,7 @@
  ***************************************************************************************************/
 
 MessageQueue::MessageQueue() {
-  q = new list<Message*>;
+  q = new std::list<Message*>;
   qcond_high = SDL_CreateCond();
   qcond_low = SDL_CreateCond();
   qmutex = SDL_CreateMutex();
@@ -63,7 +63,7 @@ void MessageQueue::putMessage(Message *m) {
   SDL_UnlockMutex(qmutex);
 }
 
-void MessageQueue::putMessages(list<Message*> *lm) {
+void MessageQueue::putMessages(std::list<Message*> *lm) {
   if (lm == NULL)
     return;
 
@@ -143,7 +143,7 @@ Message *MessageQueue::getMessageAsync() {
   return m;
 }
 
-void MessageQueue::getMessages(Uint32 timeout, list<Message*> *lm) {
+void MessageQueue::getMessages(Uint32 timeout,std::list<Message*> *lm) {
   if (lm == NULL)
     return;
 
@@ -164,7 +164,7 @@ void MessageQueue::getMessages(Uint32 timeout, list<Message*> *lm) {
   SDL_UnlockMutex(qmutex);
 }
 
-void MessageQueue::getMessages(list<Message*> *lm) {
+void MessageQueue::getMessages(std::list<Message*> *lm) {
   if (lm == NULL)
     return;
 
@@ -182,7 +182,7 @@ void MessageQueue::getMessages(list<Message*> *lm) {
   SDL_UnlockMutex(qmutex);
 }
 
-void MessageQueue::getMessagesAsync(list<Message*> *lm) {
+void MessageQueue::getMessagesAsync(std::list<Message*> *lm) {
   if (lm == NULL)
     return;
 

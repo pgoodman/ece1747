@@ -39,11 +39,11 @@ class MessageModule : public Module {
   void run();
 
   Message* receive(int timeout, int chan_id = 0);
-  void receive(int timeout, list<Message*> *lm, int chan_id = 0);
+  void receive(int timeout,std::list<Message*> *lm, int chan_id = 0);
   void run_receive();
 
   void send(Message* m, int chan_id = 0);
-  void send(list<Message*> *lm, int chan_id = 0);
+  void send(std::list<Message*> *lm, int chan_id = 0);
   void run_send();
 
   void finish();

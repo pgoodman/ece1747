@@ -31,7 +31,6 @@
 #include "Node.h"
 
 #include <set>
-using namespace std;
 
 /* custom comparator for nodes */
 struct NodeComparator {
@@ -45,9 +44,9 @@ struct NodeComparator {
   }
 };
 
-#define StlNodeSet set<Node*,NodeComparator>
+#define StlNodeSet std::set<Node*,NodeComparator>
 
-/* set of nodes ( used instead of set<Node*> for convenience ) */
+/* set of nodes ( used instead ofstd::set<Node*> for convenience ) */
 class NodeSet {
  private:
   StlNodeSet nset;

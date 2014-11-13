@@ -27,7 +27,7 @@ struct StrCompare {
   }
 };
 
-typedef map<const char*, char*, StrCompare> ConfiguratorMap;
+typedef std::map<const char*, char*, StrCompare> ConfiguratorMap;
 
 /***************************************************************************************************
  *

@@ -20,7 +20,6 @@
 
 #include "General.h"
 #include "../game/Region.h"
-#include "../game/Quest.h"
 
 #include "../graphics/Graphics.h"
 #include "../graphics/OglObject.h"

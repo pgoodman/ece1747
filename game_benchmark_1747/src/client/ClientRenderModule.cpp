@@ -128,7 +128,7 @@ void ClientRenderModule::endGraphics() {
  ***************************************************************************************************/
 
 void ClientRenderModule::updatePosition(MovementData *md, int px, int py) {
-  if (px != md->arrivalx || py != md->arrivaly) {
+  if (px != (int) md->arrivalx || py != (int) md->arrivaly) {
     /* current time and position */
     md->lastx = md->arrivalx;
     md->lasty = md->arrivaly;

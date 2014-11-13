@@ -45,14 +45,11 @@ struct IpComparator {
 bool resolveHost(IPaddress *addr, char *host_name);
 
 inline void printAddress(IPaddress a) {
-  unsigned short port;
-  unsigned char b1, b2, b3, b4;
-  port = ((a.port & 0xFF) << 8) | (a.port >> 8);
-  b1 = a.host & 0xFF;
-  b2 = (a.host >> 8) & 0xFF;
-  b3 = (a.host >> 16) & 0xFF;
-  b4 = (a.host >> 24) & 0xFF;
-
+  auto port = ((a.port & 0xFFU) << 8) | (a.port >> 8);
+  auto b1 = a.host & 0xFFU;
+  auto b2 = (a.host >> 8) & 0xFFU;
+  auto b3 = (a.host >> 16) & 0xFFU;
+  auto b4 = (a.host >> 24) & 0xFFU;
   printf("%u.%u.%u.%u:%d", b1, b2, b3, b4, port);
 }
 

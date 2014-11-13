@@ -1062,10 +1062,10 @@ void Model_3DS::FacesMaterialsListChunkProcessor(Sint32 length, Sint32 findex,
   fseek(bin3ds, findex, SEEK_SET);
 
   // Read the material's name
-  for (int i = 0; i < 80; i++) {
-    name[i] = fgetc(bin3ds);
-    if (name[i] == 0) {
-      name[i] = 0;
+  for (int j = 0; j < 80; j++) {
+    name[j] = fgetc(bin3ds);
+    if (name[j] == 0) {
+      name[j] = 0;
       break;
     }
   }

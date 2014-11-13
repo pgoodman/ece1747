@@ -30,18 +30,12 @@
  ***************************************************************************************************/
 
 WorldUpdateModule::WorldUpdateModule(int id, MessageModule *_comm,
-SDL_barrier *_barr) {
+                                     SDL_barrier *_barr) {
   assert(id >= 0 && id < sd->num_threads && _comm && _barr);
   t_id = id;
   barrier = _barr;
 
   comm = _comm;
-
-  avg_wui = -1;
-  avg_rui = -1;
-  avg_num_req_recvd = -1;
-  avg_time_proc_req = -1;
-
   assert(SDL_CreateThread( module_thread, (void*)this ) != NULL);
 }
 
@@ -73,7 +67,7 @@ void WorldUpdateModule::run() {
 
   printf("WorldUpdateModule #%d started\n", t_id);
 
-  tracepoint(trace_LB, tp_thread_begin, (int) t_id);
+  tracepoint(trace_LB, tp_thread_begin, (int ) t_id);
 
   /* main loop */
   while (true) {
@@ -125,8 +119,7 @@ void WorldUpdateModule::run() {
       delete m;
       timeout = sd->regular_update_interval - (SDL_GetTicks() - start_time);
       //printf("1 %d\n", processing_total);
-      if (((int) timeout) < 0)
-      {
+      if (((int) timeout) < 0) {
         timeout = 0;
         //break;
       }
@@ -153,13 +146,12 @@ void WorldUpdateModule::run() {
 
       if (num_iterations == quest_begin) {
         sd->quest_pos.x = (rand() % sd->wm.n_regs.x)
-            * sd->wm.regmin.x + MAX_CLIENT_VIEW;
+            * sd->wm.regmin.x+ MAX_CLIENT_VIEW;
         sd->quest_pos.y = (rand() % sd->wm.n_regs.y)
-            * sd->wm.regmin.y + MAX_CLIENT_VIEW;
+            * sd->wm.regmin.y+ MAX_CLIENT_VIEW;
         sd->send_start_quest = 1;
       }
-      if (num_iterations >= quest_begin &&
-          num_iterations < quest_end) {
+      if (num_iterations >= quest_begin && num_iterations < quest_end) {
 
         int tid = sd->wm.getRegionByLocation(sd->quest_pos)->t_id;
         if (last_quest_tid != tid) {

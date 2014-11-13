@@ -50,7 +50,7 @@ void RecycleBin::add(Garbage *g) {
   SDL_LockMutex(mutex);
 
   /* check if the item added is already in the list */
-  for (list<Garbage*>::iterator it = gl.begin(); it != gl.end(); it++) {
+  for (std::list<Garbage*>::iterator it = gl.begin(); it != gl.end(); it++) {
     Garbage *gv = *it;
     if ((void*) gv == (void*) g) /* pointer compare */
     {
@@ -76,7 +76,7 @@ void RecycleBin::add(Garbage *g) {
 
 void RecycleBin::accept() {
   SDL_LockMutex(mutex);
-  for (list<Garbage*>::iterator it = gl.begin(); it != gl.end(); it++) {
+  for (std::list<Garbage*>::iterator it = gl.begin(); it != gl.end(); it++) {
     Garbage *g = *it;
     g->mark();
   }
@@ -85,7 +85,7 @@ void RecycleBin::accept() {
 
 void RecycleBin::acceptIt(Garbage *&old_ptr) {
   SDL_LockMutex(mutex);
-  list<Garbage*>::iterator it;
+ std::list<Garbage*>::iterator it;
   it = gl.begin();
   while (it != gl.end()) {
     Garbage *g = *it;
@@ -110,7 +110,7 @@ void RecycleBin::acceptIt(Garbage *&old_ptr) {
 
 void RecycleBin::empty() {
   SDL_LockMutex(mutex);
-  list<Garbage*>::iterator it;
+ std::list<Garbage*>::iterator it;
   it = gl.begin();
   while (it != gl.end()) {
     Garbage *g = *it;
@@ -124,10 +124,10 @@ void RecycleBin::empty() {
 }
 
 list<Garbage*> RecycleBin::emptyWithList() {
-  list<Garbage*> el;
+ std::list<Garbage*> el;
 
   SDL_LockMutex(mutex);
-  list<Garbage*>::iterator it;
+ std::list<Garbage*>::iterator it;
   it = gl.begin();
   while (it != gl.end()) {
     Garbage *g = *it;

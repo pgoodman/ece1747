@@ -16,7 +16,7 @@
 
 #include "ObiectVRML.h"
 
-OBIECT_VRML::OBIECT_VRML(int *mtextura) {
+OBIECT_VRML::OBIECT_VRML(int *mtextura_) {
   pc = NULL;
   tc = NULL;
   tr = NULL;
@@ -31,7 +31,8 @@ OBIECT_VRML::OBIECT_VRML(int *mtextura) {
   nume = NULL;
   textura = NULL;
   cr = cg = cb = 0;
-  this->mtextura = mtextura;
+  mtextura = mtextura_;
+  ind_text = 0;
 }
 
 OBIECT_VRML::~OBIECT_VRML() {
@@ -39,7 +40,9 @@ OBIECT_VRML::~OBIECT_VRML() {
 }
 
 bool OBIECT_VRML::Incarca(char *tot) {
-  char *p, *q, *r;
+  char *p = nullptr;
+  char *q = nullptr;
+  char *r = nullptr;
   int i, k;
 
   // numele

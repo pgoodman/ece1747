@@ -49,7 +49,7 @@ void OglWorld::create(int x, int y, int depth) {
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
 
-  glClearColor(0.0, 0.0, 0.2, 0.0);
+  glClearColor(0.0, 0.0, 0.2f, 0.0);
 }
 
 void OglWorld::createFullScreen(int x, int y, int depth) {
@@ -64,7 +64,7 @@ void OglWorld::createFullScreen(int x, int y, int depth) {
     printf("Cannot initialize OpenGL\n");
     return;
   }
-  glClearColor(0.0, 0.0, 0.2, 0.0);
+  glClearColor(0.0, 0.0, 0.2f, 0.0);
 
   /* OpenGL attributes */
   glEnable(GL_DEPTH_TEST);

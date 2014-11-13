@@ -6,9 +6,24 @@
 
 ## Compilation parameters
 
-CC = gcc
-CXX = g++ -std=c++0x
-CXXFLAGS := `sdl-config --cflags` -isystem /usr/include/SDL -isystem /usr/include/GL -I./src -I./src/tracing -Wall -O3 -g3 -rdynamic
+CC = clang
+CXX = clang++ -std=c++11 -stdlib=libc++
+DEBUG_FLAGS = -O0 -g3 
+
+ERROR_FLAGS =
+ERROR_FLAGS += -Wall -Wextra -Werror -pedantic -pedantic-errors
+ERROR_FLAGS += -Wcast-qual -Wpointer-arith # -Wshadow
+ERROR_FLAGS += -Winit-self -Wfloat-equal # -Wconversion
+ERROR_FLAGS += -Wuninitialized -Wsometimes-uninitialized
+ERROR_FLAGS += -Wmissing-declarations -Wwrite-strings
+ERROR_FLAGS += -fstrict-aliasing -Wstrict-aliasing=2 -Wstrict-overflow=2
+ERROR_FLAGS += -Wcast-align -Wredundant-decls -Wvolatile-register-var
+ERROR_FLAGS += -Wstack-protector -Wframe-larger-than=4096
+ERROR_FLAGS += -Wno-unused-parameter -Wno-cast-align -Wno-gnu-zero-variadic-macro-arguments
+
+SDL_CFLAGS := $(shell sdl-config --cflags)
+INCLUDE_FLAGS := -isystem /usr/include/SDL -isystem /usr/include/GL -I./src -I./src/tracing
+CXXFLAGS := $(SDL_CFLAGS) $(INCLUDE_FLAGS) $(ERROR_FLAGS) $(DEBUG_FLAGS)
 ## Other CXXFLAGS: (also defined in src/Settings.h)
 ## -D__DISABLE_RATE_MONITOR__	<== don't monitor trasnfer: faster transfer but no statistics
 ## -D__COMPRESSED_MESSAGES__	<== update messages from server to clients are compressed with zlib
@@ -17,7 +32,9 @@ CXXFLAGS := `sdl-config --cflags` -isystem /usr/include/SDL -isystem /usr/includ
 ## -D__SERVER_PLAYER_RATIO__	<== each player has a coefficient depending on its speed (works well
 ##				only if the server has one regular update thread)
 ## -D__USE_3DS_GRAPHICS__	<== use 3ds models instead of vrml for client GUI
-LDFLAGS := `sdl-config --libs` -lSDL_net -lm
+SDL_LDFLAGS := $(shell sdl-config --libs)
+LDFLAGS := $(SDL_LDFLAGS) -lSDL_net -lm
+
 ## -lz is also needed when compiling with -D__COMPRESSED_MESSAGES__
 LDFLAGS_CLIENT = $(LDFLAGS) -lGL -lGLU
 LDFLAGS_SERVER = $(LDFLAGS) -ldl -llttng-ust
@@ -37,7 +54,7 @@ GRAPHICS_SOURCES = $(wildcard $(SOURCE_DIR)/graphics/*.cpp) \
 	$(wildcard $(SOURCE_DIR)/graphics/3ds/*.cpp) \
 	$(wildcard $(SOURCE_DIR)/graphics/texture/*.cpp) \
 	$(wildcard $(SOURCE_DIR)/graphics/font/*.cpp)
-TRACING_SOURCES  = $(wildcard $(SOURCE_DIR)/tracing/*.c) $(wildcard $(SOURCE_DIR)/tracing/*.h)
+TRACING_SOURCES  = $(wildcard $(SOURCE_DIR)/tracing/*.c) #$(wildcard $(SOURCE_DIR)/tracing/*.h)
 
 
 ## SERVER
@@ -46,11 +63,6 @@ SERVER_SRCS_CPP = $(SHARED_SOURCES) $(GAME_SOURCES_CPP) $(COMM_SOURCES) $(wildca
 SERVER_SRCS_C   = $(GAME_SOURCES_C) $(TRACING_SOURCES)
 SERVER_OBJS = $(patsubst $(SOURCE_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SERVER_SRCS_CPP)) \
               $(patsubst $(SOURCE_DIR)/%.c,$(BUILD_DIR)/%.o,$(SERVER_SRCS_C))
-
-## MASTER
-MASTER_DIR  = $(SOURCE_DIR)/master
-MASTER_SRCS = $(wildcard $(MASTER_DIR)/*.cpp) $(SHARED_SOURCES) $(GAME_SOURCES) $(COMM_SOURCES)
-MASTER_OBJS = $(patsubst $(SOURCE_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(MASTER_SRCS))
 
 ## CLIENT
 CLIENT_DIR  = $(SOURCE_DIR)/client
@@ -62,7 +74,6 @@ CLIENT_OBJS = $(patsubst $(SOURCE_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(CLIENT_SRCS_CPP)
 
 SERVER_BINARY_NAME = server
 CLIENT_BINARY_NAME = client
-MASTER_BINARY_NAME = master
 
 ## Parameters for running
 
@@ -109,8 +120,6 @@ client: $(BUILD_DIR) $(CLIENT_OBJS)
 	$(CXX) -o $(CLIENT_BINARY_NAME) $(CLIENT_OBJS) $(LDFLAGS_CLIENT)
 server: $(BUILD_DIR) $(SERVER_OBJS)
 	$(CXX) -o $(SERVER_BINARY_NAME) $(SERVER_OBJS) $(LDFLAGS_SERVER)
-master: $(BUILD_DIR) $(MASTER_OBJS)
-	$(CXX) -o $(MASTER_BINARY_NAME) $(MASTER_OBJS) $(LDFLAGS_MASTER)
 
 ## Target for generic cpp files
 $(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.cpp
@@ -119,11 +128,6 @@ $(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.cpp
 ## Target for generic c files
 $(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.c
 	$(CC) -c $(CXXFLAGS) -o $@ $<
-
-
-## Call another makefile to build the game monitor
-gamemonitor:
-	make -C src/gamemonitor
 
 ## Clean
 .PHONY: clean
@@ -134,41 +138,6 @@ clean:
 	-rm -f /tmp/master.log
 clean_all: clean
 	-make -C src/gamemonitor clean
-
-####################################################################################################
-##
-## RUN
-##
-####################################################################################################
-
-## run
-run_master: master
-	./$(MASTER_BINARY_NAME) $(MASTER_CONFIG_FILE) 7878 /tmp/master.log
-run_server: run_server1
-run_server1: server
-	./$(SERVER_BINARY_NAME) $(HOST_NAME):7878 $(HOST_NAME):3000
-run_server2: server
-	./$(SERVER_BINARY_NAME) $(HOST_NAME):7878 $(HOST_NAME):3001
-run_server3: server
-	./$(SERVER_BINARY_NAME) $(HOST_NAME):7878 $(HOST_NAME):3002
-run_server4: server
-	./$(SERVER_BINARY_NAME) $(HOST_NAME):7878 $(HOST_NAME):3003
-
-run_10:
-	for (( i=1; i<=10; i++ )); do ./$(CLIENT_BINARY_NAME) $(HOST_NAME):3000 > /dev/null & echo -n $(i)" "; done
-run_100:
-	for (( i=1; i<=100; i++ )); do ./$(CLIENT_BINARY_NAME) $(HOST_NAME):3000 > /dev/null & echo -n $(i)" "; done
-run_200:
-	for (( i=1; i<=200; i++ )); do ./$(CLIENT_BINARY_NAME) $(HOST_NAME):3000 > /dev/null & echo -n $(i)" "; done
-run_400:
-	for (( i=1; i<=400; i++ )); do ./$(CLIENT_BINARY_NAME) $(HOST_NAME):3000 > /dev/null & echo -n $(i)" "; done
-run_1000:
-	for (( i=1; i<=1000; i++ )); do ./$(CLIENT_BINARY_NAME) $(HOST_NAME):3000 > /dev/null & echo -n $(i)" "; done
-
-run_client: client
-	./$(CLIENT_BINARY_NAME) $(HOST_NAME):3000
-run_client_gui: client
-	./$(CLIENT_BINARY_NAME) --gui $(HOST_NAME):3000
 
 ## client
 ## --gui --nogui --size=640x480 --bpp=32 --fullscreen --debug-AI --disconnect_timeout=5

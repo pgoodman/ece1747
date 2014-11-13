@@ -41,7 +41,7 @@ char help_text[] =
         "	</tr>"
         "<tr>"
         "	<td><b>Number of regions</b></td>"
-        "	<td>Number of regions on the map</td>"
+        "	<td>Number of regions on thestd::map</td>"
         "	</tr>"
         "<tr>"
         "	<td><b>Min/Max quest interval</b></td>"

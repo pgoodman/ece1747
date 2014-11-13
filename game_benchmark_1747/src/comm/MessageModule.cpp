@@ -74,7 +74,7 @@ Message* MessageModule::receive(int timeout, int chan_id) {
   return receive_message(chan_id);
 }
 
-void MessageModule::receive(int timeout, list<Message*> *lm, int chan_id) {
+void MessageModule::receive(int timeout,std::list<Message*> *lm, int chan_id) {
   int res_cs;
   assert(timeout >= 0 && chan_id >= 0 && chan_id < n_chans && lm);
 
@@ -176,7 +176,7 @@ void MessageModule::send(Message* m, int chan_id) {
   SDL_UnlockMutex(send_mutex);
 }
 
-void MessageModule::send(list<Message*> *lm, int chan_id) {
+void MessageModule::send(std::list<Message*> *lm, int chan_id) {
   assert(chan_id >= 0 && chan_id < n_chans && lm);
 
   if (!thread_on) {
@@ -231,7 +231,7 @@ void MessageModule::run_send() {
 
 #else
 
-    list<Message*> lm;
+    std::list<Message*> lm;
     chans[ send_chan_id ].m_queue[1].getMessagesAsync( &lm );
 
     while ( !lm.empty() )
