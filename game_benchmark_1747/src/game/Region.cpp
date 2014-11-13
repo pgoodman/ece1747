@@ -1,7 +1,77 @@
 #include "Region.h"
 
-void initRegion(Region* r, Vector2D p, Vector2D sz, int t_id,
-               std::list<GameObject*> objs,std::list<Player*> pls) {
+RegionGroup::RegionGroup(void) {
+  num_regions = 1;
+  sub_regions[0] = nullptr;
+  sub_regions[1] = nullptr;
+  sub_regions[2] = nullptr;
+  sub_regions[3] = nullptr;
+}
+
+RegionGroup::RegionGroup(int num_regions_) {
+  num_regions = num_regions_;
+  if (4 == num_regions) {
+    sub_regions[0] = new Region;
+    sub_regions[1] = new Region;
+    sub_regions[2] = new Region;
+    sub_regions[3] = new Region;
+  } else {
+    auto num_sub_regions = num_regions / 4;
+    sub_regions[0] = new RegionGroup(num_sub_regions);
+    sub_regions[1] = new RegionGroup(num_sub_regions);
+    sub_regions[2] = new RegionGroup(num_sub_regions);
+    sub_regions[3] = new RegionGroup(num_sub_regions);
+  }
+  num_players = 0;
+}
+
+RegionGroup::~RegionGroup(void)
+{
+}
+
+void RegionGroup::update(void)
+{
+  num_players = 0;
+  for(auto sub_region: sub_regions)
+  {
+    sub_region->update();
+    num_players += sub_region->num_players;
+  }
+}
+
+Region *RegionGroup::find(int x, int y) {
+  auto split = num_regions / 2;
+  auto x_split = x - split;
+  auto y_split = y - split;
+  if (x < split) {
+    if (y < split) {
+      return sub_regions[0]->find(x, y);
+    } else {
+      return sub_regions[0]->find(x, y_split);
+    }
+  } else {
+    if (y < split) {
+      return sub_regions[0]->find(x_split, y);
+    } else {
+      return sub_regions[0]->find(x_split, y_split);
+    }
+  }
+}
+
+Region::Region(void)
+    : RegionGroup() {}
+
+Region::~Region(void)
+{}
+void Region::update(void)
+{}
+Region *Region::find(int x, int y) {
+  return this;
+}
+
+void initRegion(int id, Region* r, Vector2D p, Vector2D sz, int t_id,
+                std::list<GameObject*> objs, std::list<Player*> pls, SDL_mutex *mutex) {
+  r->region_id = id;
   r->pos = p;
   r->size = sz;
 
@@ -11,7 +81,7 @@ void initRegion(Region* r, Vector2D p, Vector2D sz, int t_id,
   r->players = pls;
   r->num_players = pls.size();
 
-  r->mutex = SDL_CreateMutex();
+  r->mutex = mutex;
 }
 
 int Region_addPlayer(Region* r, Player* p) {

@@ -66,7 +66,7 @@ void ServerData::dataFromConfigurator(Configurator &conf) {
 
   /* Map and region size */
   this->wm.size.x = conf.getIntAttribute("map.width") * CLIENT_MATRIX_SIZE;
-  this->wm.size.y = conf.getIntAttribute("map.height") * CLIENT_MATRIX_SIZE;
+  this->wm.size.y = this->wm.size.x; //conf.getIntAttribute("map.height") * CLIENT_MATRIX_SIZE;
   this->wm.regmin.x = conf.getIntAttribute(
       "map.region_min_width") * CLIENT_MATRIX_SIZE;
   this->wm.regmin.y = conf.getIntAttribute(

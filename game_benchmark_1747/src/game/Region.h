@@ -9,23 +9,41 @@ using namespace std;
 #include "Player.h"
 #include "GameObject.h"
 
-typedef struct {
+struct Region;
+
+struct RegionGroup {
+  RegionGroup(void);
+  RegionGroup(int num_regions_);
+  virtual ~RegionGroup(void);
+  virtual void update(void);
+  virtual Region *find(int x, int y);
+  RegionGroup * sub_regions[4];
+
+  int num_players;
+  int num_regions;
+};
+
+struct Region : public RegionGroup {
+  Region();
+  virtual ~Region();
+  virtual Region *find(int x, int y);
+  virtual void update();
+  
+  int region_id;
   Vector2D pos;			// coordinates of the upper left corner of the region
   Vector2D size;			// size of the region
 
   int t_id;	// = thread_id of the thread handling the players from this region
 
  std::list<Player*> players;
-  int num_players;
 
  std::list<GameObject*> objects;
 
   SDL_mutex *mutex;
-} Region;
+};
 
-void initRegion(Region* r, Vector2D p, Vector2D sz, int _layout,
-               std::list<GameObject*> objs,std::list<Player*> pls);
-
+void initRegion(int id, Region* r, Vector2D p, Vector2D sz, int _layout,
+                std::list<GameObject*> objs, std::list<Player*> pls, SDL_mutex *mutex);
 int Region_addPlayer(Region* r, Player* p);
 void Region_removePlayer(Region* r, Player* p);
 bool Region_movePlayer(Region* r_old, Region* r_new, Player* p, Vector2D n_pos);

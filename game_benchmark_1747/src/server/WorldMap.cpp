@@ -30,18 +30,26 @@ void WorldMap::generate() {
 
   n_regs.x = size.x / regmin.x;
   n_regs.y = size.y / regmin.y;
-  int regions_per_thread = (n_regs.x * n_regs.y - 1) / sd->num_threads + 1;
-  regions = new Region*[n_regs.x];
+  int num_regions = n_regs.x * n_regs.y;
+  int regions_per_thread = (num_regions - 1) / sd->num_threads + 1;
+
+  region_quad_tree = new RegionGroup(num_regions);
+  int region_id = 0;
   for (i = 0, pos.x = 0; i < n_regs.x; i++, pos.x += regmin.x) {
-    regions[i] = new Region[n_regs.y];
     for (j = 0, pos.y = 0; j < n_regs.y; j++, pos.y += regmin.y) {
+
+      //Add mutex for each region
+      SDL_mutex *mutex = SDL_CreateMutex();
+      this->region_mutexes.push_back(mutex);
+
       auto t_id = (i * n_regs.y + j) / regions_per_thread;
-      auto region = &(regions[i][j]);
-      initRegion(region, pos, regmin, t_id, objs, pls);
+      auto region = region_quad_tree->find(i, j);
+      //Create region
+      initRegion(region_id, region, pos, regmin, t_id, objs, pls, mutex);
+      ++region_id;
       thread_regions[t_id].insert(region);
       all_regions.insert(region);
     }
-
   }
 
   /* generate objects */
@@ -277,7 +285,7 @@ void WorldMap::updatePlayer(Player* p, Serializator* s) {
 }
 
 Region* WorldMap::getRegionByLocation(Vector2D loc) {
-  return &regions[loc.x / regmin.x][loc.y / regmin.y];
+  return region_quad_tree->find(loc.x / regmin.x, loc.y / regmin.y);
 }
 
 void WorldMap::printRegions() {
@@ -291,14 +299,32 @@ void WorldMap::printRegions() {
     cout << j << "\t";
     for (int i = 0; i < n_regs.x; ++i) {
       //cout<<regions[i][j].pos.x<<","<<regions[i][j].pos.y<<" "<<regions[i][j].t_id <<"\t";
-      cout << regions[i][j].t_id << "\t";
+      cout << region_quad_tree->find(i, j)->t_id << "\t";
     }
     cout << endl;
   }
 
 }
+void WorldMap::mergeRegionMutexes(const set<Region *> &regions)
+{
+  auto first_region = *regions.begin();
+  auto mutex = region_mutexes[first_region->region_id];
+  for(auto region: regions)
+  {
+    region->mutex = mutex;
+  }
+}
+
+void WorldMap::splitRegionMutexes(const set<Region *> &regions)
+{
+  for(auto region: regions)
+  {
+    region->mutex = region_mutexes[region->region_id];
+  }
+}
+
 void WorldMap::regenerateObjects() {
-  Region_regenerateObjects(&regions[rand() % n_regs.x][rand() % n_regs.y],
+  Region_regenerateObjects(region_quad_tree->find(rand() % n_regs.x, rand() % n_regs.y),
                            max_res);
 }
 

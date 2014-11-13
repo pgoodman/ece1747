@@ -15,9 +15,10 @@ class WorldMap {
   PlayerBucket* players; /*array of PlayerBuckets, one for each thread */
   int n_players;
   
- std::set<Region *> *thread_regions;  // Array of regions by t_id.
- std::set<Region *> all_regions;  // Array of regions by t_id.
-  Region** regions;
+  std::set<Region *> *thread_regions;  // Array of regions by t_id.
+  std::set<Region *> all_regions;  // Array of regions by t_id.
+  std::vector<SDL_mutex*> region_mutexes;
+  RegionGroup *region_quad_tree;
   Vector2D n_regs;
 
   /* map and region */
@@ -45,6 +46,9 @@ class WorldMap {
 
   Region* getRegionByLocation(Vector2D loc);
   void printRegions();
+  void mergeRegionMutexes(const set<Region *> &regions);
+  void splitRegionMutexes(const set<Region *> &regions);
+  
   void balance();
   void balance_lightest();
   void balance_spread();
