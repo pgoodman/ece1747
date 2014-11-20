@@ -32,8 +32,12 @@ class Player {
   int life, attr; /* attributes */
   int dir; /* direction (0,1,2,3) = (up,right,down,left) */
 
-  /* synchronization */
+  // The mutex that currently guards this player. This might be `owned_mutex`
+  // or a region's mutex.
   SDL_mutex *mutex;
+
+  // The actual player mutex.
+  SDL_mutex * const owned_mutex;
 
   /* parameter used in operations requiring retries */
   int count;

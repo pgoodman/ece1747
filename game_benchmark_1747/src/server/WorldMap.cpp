@@ -33,7 +33,12 @@ void WorldMap::generate() {
   int num_regions = n_regs.x * n_regs.y;
   int regions_per_thread = (num_regions - 1) / sd->num_threads + 1;
 
-  region_quad_tree = new RegionGroup(num_regions);
+  if (num_regions == 1) {
+    region_quad_tree = new Region(nullptr);
+  } else {
+    assert(4 <= num_regions);
+    region_quad_tree = new RegionGroup(num_regions);
+  }
   int region_id = 0;
   for (i = 0, pos.x = 0; i < n_regs.x; i++, pos.x += regmin.x) {
     for (j = 0, pos.y = 0; j < n_regs.y; j++, pos.y += regmin.y) {
@@ -182,11 +187,14 @@ void WorldMap::attackPlayer(Player* p, int attack_dir) {
     return;
 
   /* get second player */
-  Region* r = getRegionByLocation(pos2);
-  assert(r);
-  Player* p2 = Region_getPlayer(r, pos2);
+  Region* p2_r = getRegionByLocation(pos2);
+  assert(p2_r);
+  Player* p2 = Region_getPlayer(p2_r, pos2);
   if (p2 != NULL)
     p->attackPlayer(p2);
+
+  auto p_r = getRegionByLocation(p->pos);
+  RegionGroup::addInteraction(p_r, p2_r);
 
   if (sd->display_actions)
     printf("Player %s attacks %s\n", p->name, p2->name);
@@ -427,7 +435,7 @@ void WorldMap::balance_lightest() {
 
   P(cout << " = " << total_num_players << endl;)
 
-  if (underloaded_threads.empty()) {
+  if (underloaded_threads.empty() && !overloaded_threads.empty()) {
     P( cout << "Could not re-balance overloaded threads! No threads are "
         << "underloaded." << endl;)
     return;
@@ -447,104 +455,150 @@ void WorldMap::balance_lightest() {
 
     reassignRegion(region, uthread.t_id);
 
-  P(cout << "Thread " << othread.t_id << " overloaded ("
-      << (1.0 - othread.load) << "). Shedding region to " << uthread.t_id
-      << endl;)
-}
+    P(cout << "Thread " << othread.t_id << " overloaded ("
+        << (1.0 - othread.load) << "). Shedding region to " << uthread.t_id
+        << endl;)
+  }
 
-if (!overloaded_threads.empty()) {
-P( printRegions();)
-}
+  if (!overloaded_threads.empty()) {
+    P( printRegions();)
+  }
 }
 
 struct ordered_region {
-Region * r;
-ordered_region(Region * r_)
-  : r(r_) {
-}
-    //Sorted from largest number of player to smallest seems a better idea
-    //so we don't get stuck at the end of with several avgly loaded thread and
-    //a highly populated region to give.
-bool operator<(const ordered_region &that) const {
-if (r->num_players > that.r->num_players)
-  return true;
-else if (r->num_players < that.r->num_players)
-  return false;
-else
-  return r > that.r;
-}
+  Region * r;
+  ordered_region(Region * r_)
+    : r(r_) {
+  }
+  //Sorted from largest number of player to smallest seems a better idea
+  //so we don't get stuck at the end of with several avgly loaded thread and
+  //a highly populated region to give.
+  bool operator<(const ordered_region &that) const {
+    if (r->num_players > that.r->num_players)
+      return true;
+    else if (r->num_players < that.r->num_players)
+      return false;
+    else
+      return r > that.r;
+  }
 };
 
 void WorldMap::balance_spread() {
-int targeted_avg = (int) (n_players / (double) sd->num_threads);
-std::set<ordered_region> regions;
-vector<int> num_players(sd->num_threads);
+  int targeted_avg = (int) (n_players / (double) sd->num_threads);
+  std::set<ordered_region> regions;
+  vector<int> num_players(sd->num_threads);
 
-   // order all of our regions
-for (auto region : all_regions) {
-regions.insert(region);
-}
-
-for (bool made_progress = true; made_progress;) {
-
-made_progress = false;
-for (auto tid : sd->zigzag_tids) {
-  if (regions.empty()) {
-    goto end;
+      // order all of our regions
+  for (auto region : all_regions) {
+    regions.insert(region);
   }
 
-  auto oregion_it = regions.begin();
-  auto region = oregion_it->r;
+  for (bool made_progress = true; made_progress;) {
 
-  // Try to assign a region to a thread.
-  if (!num_players[tid]
-      || targeted_avg < (num_players[tid] + region->num_players)) {
+    made_progress = false;
+    for (auto tid : sd->zigzag_tids) {
+      if (regions.empty()) {
+        goto end;
+      }
+
+      auto oregion_it = regions.begin();
+      auto region = oregion_it->r;
+
+      // Try to assign a region to a thread.
+      if (!num_players[tid]
+          || targeted_avg < (num_players[tid] + region->num_players)) {
+        reassignRegion(region, tid);
+        num_players[tid] += region->num_players;
+        regions.erase(oregion_it);
+        made_progress = true;
+      }
+    }
+  }
+
+  for (auto oregion : regions) {
+    //Tid with the minimum number of players
+    auto tid = std::min_element(num_players.begin(), num_players.end())
+        - num_players.begin();
+    auto region = oregion.r;
+
     reassignRegion(region, tid);
     num_players[tid] += region->num_players;
-    regions.erase(oregion_it);
-    made_progress = true;
   }
-}
-}
-
-for (auto oregion : regions) {
-//Tid with the minimum number of players
-auto tid = std::min_element(num_players.begin(), num_players.end())
-    - num_players.begin();
-auto region = oregion.r;
-
-reassignRegion(region, tid);
-num_players[tid] += region->num_players;
-}
-end: P(printRegions();)
-return;
+  end: P(printRegions();)
+  return;
 }
 
 void WorldMap::balance() {
-Uint32 now = SDL_GetTicks();
-if (now - last_balance < sd->load_balance_limit)
-return;
-last_balance = now;
+  Uint32 now = SDL_GetTicks();
+  if (now - last_balance < sd->load_balance_limit) return;
+  last_balance = now;
 
-if (!strcmp(sd->algorithm_name, "static"))
-return;
+  if (!strcmp(sd->algorithm_name, "static")) return;
 
-n_players = 0;
-for (int i = 0; i < sd->num_threads; i++)
-n_players += players[i].size();
-if (n_players == 0)
-return;
+  n_players = 0;
+  for (int i = 0; i < sd->num_threads; i++) {
+    n_players += players[i].size();
+  }
 
-if (!strcmp(sd->algorithm_name, "lightest")) {
-balance_lightest();
-return;
+  if (n_players == 0) return;
+
+  if (!strcmp(sd->algorithm_name, "lightest")) {
+    balance_lightest();
+  } else if (!strcmp(sd->algorithm_name, "spread")) {
+    balance_spread();
+  } else {
+    printf("Algorithm %s is not implemented.\n", sd->algorithm_name);
+    return;
+  }
+
+  // Updates player counts in all regions / region groups.
+  region_quad_tree->update();
+
+  // Merge player mutexes within their regions.
+  mergePlayersWithinRegions();
 }
 
-if (!strcmp(sd->algorithm_name, "spread")) {
-balance_spread();
-return;
-}
+void WorldMap::mergePlayersWithinRegions() {
 
-printf("Algorithm %s is not implemented.\n", sd->algorithm_name);
-return;
+  for (auto region : all_regions) {
+    double num_players = region->num_players;
+    double num_interactions = region->num_player_interactions;
+    double interaction_density = num_interactions / num_players;
+
+    // Merge if there are few interactions or many interactions.
+    if (0.5 > interaction_density || 1.5 < interaction_density) {
+      for (auto player : region->players) {
+        player->mutex = region->player_mutex;
+      }
+
+    // Split.
+    } else {
+      for (auto player : region->players) {
+        player->mutex = player->owned_mutex;
+      }
+    }
+  }
+
+
+#if 0
+  for (auto region : all_regions) {
+    if (region->num_players > 4) {
+
+      // Split player mutexes.
+      if (region->merged_player_mutexes) {
+        for (auto player : region->players) {
+          player->mutex = player->owned_mutex;
+        }
+        region->merged_player_mutexes = false;
+      }
+
+    // Merge player mutexes with the region mutex.
+    } else if (!region->merged_player_mutexes) {
+      for (auto player : region->players) {
+        player->mutex = region->player_mutex;
+      }
+      region->merged_player_mutexes = true;
+    }
+  }
+#endif
 }

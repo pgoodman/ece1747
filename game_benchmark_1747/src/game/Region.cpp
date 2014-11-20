@@ -1,28 +1,37 @@
 #include "Region.h"
 
-RegionGroup::RegionGroup(void) {
+RegionGroup::RegionGroup(RegionGroup *parent_)
+    : num_player_interactions_(ATOMIC_VAR_INIT(0)) {
   num_regions = 1;
   sub_regions[0] = nullptr;
   sub_regions[1] = nullptr;
   sub_regions[2] = nullptr;
   sub_regions[3] = nullptr;
+  num_players = 0;
+  player_mutex = SDL_CreateMutex();
+  num_player_interactions = 0;
+  parent = parent_;
 }
 
-RegionGroup::RegionGroup(int num_regions_) {
+RegionGroup::RegionGroup(int num_regions_, RegionGroup *parent_)
+    : num_player_interactions_(ATOMIC_VAR_INIT(0)) {
   num_regions = num_regions_;
   if (4 == num_regions) {
-    sub_regions[0] = new Region;
-    sub_regions[1] = new Region;
-    sub_regions[2] = new Region;
-    sub_regions[3] = new Region;
+    sub_regions[0] = new Region(this);
+    sub_regions[1] = new Region(this);
+    sub_regions[2] = new Region(this);
+    sub_regions[3] = new Region(this);
   } else {
     auto num_sub_regions = num_regions / 4;
-    sub_regions[0] = new RegionGroup(num_sub_regions);
-    sub_regions[1] = new RegionGroup(num_sub_regions);
-    sub_regions[2] = new RegionGroup(num_sub_regions);
-    sub_regions[3] = new RegionGroup(num_sub_regions);
+    sub_regions[0] = new RegionGroup(num_sub_regions, this);
+    sub_regions[1] = new RegionGroup(num_sub_regions, this);
+    sub_regions[2] = new RegionGroup(num_sub_regions, this);
+    sub_regions[3] = new RegionGroup(num_sub_regions, this);
   }
   num_players = 0;
+  player_mutex = SDL_CreateMutex();
+  num_player_interactions = 0;
+  parent = parent_;
 }
 
 RegionGroup::~RegionGroup(void)
@@ -31,6 +40,9 @@ RegionGroup::~RegionGroup(void)
 
 void RegionGroup::update(void)
 {
+  num_player_interactions = num_player_interactions_.load(std::memory_order_relaxed);
+  num_player_interactions_.store(0, std::memory_order_relaxed);
+
   num_players = 0;
   for(auto sub_region: sub_regions)
   {
@@ -58,13 +70,30 @@ Region *RegionGroup::find(int x, int y) {
   }
 }
 
-Region::Region(void)
-    : RegionGroup() {}
+void RegionGroup::addInteraction(RegionGroup *g1, RegionGroup *g2) {
+/*  while (g1 != g2) {
+    g1 = g1->parent;
+    g2 = g2->parent;
+  }
+  assert(g1 && g2);
+  g1->num_player_interactions_.fetch_add(1); */
+  g1->num_player_interactions_.fetch_add(1);
+  g2->num_player_interactions_.fetch_add(1);
+}
+
+Region::Region(RegionGroup *parent_)
+    : RegionGroup(parent_) {
+  t_id = -1;
+}
 
 Region::~Region(void)
 {}
-void Region::update(void)
-{}
+
+void Region::update(void) {
+  num_player_interactions = num_player_interactions_.load(std::memory_order_relaxed);
+  num_player_interactions_.store(0, std::memory_order_relaxed);
+}
+
 Region *Region::find(int x, int y) {
   return this;
 }
@@ -179,7 +208,7 @@ bool Region_movePlayer(Region* r_old, Region* r_new, Player* p,
 Player* Region_getPlayer(Region* r, Vector2D loc) {
   SDL_LockMutex(r->mutex);
 
- std::list<Player*>::iterator ip;  //iterator for players
+  std::list<Player*>::iterator ip;  //iterator for players
   Player *p = NULL;
   for (ip = r->players.begin(); ip != r->players.end(); ip++) {
     if ((*ip)->pos.x == loc.x && (*ip)->pos.y == loc.y) {
@@ -193,10 +222,12 @@ Player* Region_getPlayer(Region* r, Vector2D loc) {
 }
 
 int Region_addObject(Region* r, GameObject *o, int min_res, int max_res) {
- std::list<GameObject*>::iterator oi;  //iterator for objects
-  for (oi = r->objects.begin(); oi != r->objects.end(); oi++)
-    if ((*oi)->pos.x == o->pos.x && (*oi)->pos.y == o->pos.y)
+  std::list<GameObject*>::iterator oi;  //iterator for objects
+  for (oi = r->objects.begin(); oi != r->objects.end(); oi++) {
+    if ((*oi)->pos.x == o->pos.x && (*oi)->pos.y == o->pos.y) {
       return 0;
+    }
+  }
 
   o->attr = rand() % 256;
   o->quantity = min_res + rand() % (max_res - min_res + 1);
@@ -206,7 +237,7 @@ int Region_addObject(Region* r, GameObject *o, int min_res, int max_res) {
 }
 
 GameObject* Region_getObject(Region* r, Vector2D loc) {
- std::list<GameObject*>::iterator io;  //iterator for objects
+  std::list<GameObject*>::iterator io;  //iterator for objects
   GameObject *o = NULL;
   for (io = r->objects.begin(); io != r->objects.end(); io++) {
     if ((*io)->pos.x == loc.x && (*io)->pos.y == loc.y) {
@@ -218,14 +249,17 @@ GameObject* Region_getObject(Region* r, Vector2D loc) {
 }
 
 void Region_regenerateObjects(Region* r, int max_res) {
- std::list<GameObject*>::iterator io;  //iterator for objects
-  for (io = r->objects.begin(); io != r->objects.end(); io++)
-    if ((*io)->quantity < max_res)
+  std::list<GameObject*>::iterator io;  //iterator for objects
+  for (io = r->objects.begin(); io != r->objects.end(); io++) {
+    if ((*io)->quantity < max_res) {
       (*io)->quantity++;
+    }
+  }
 }
 
 void Region_rewardPlayers(Region* r, int bonus, int max_life) {
- std::list<Player*>::iterator ip;  //iterator for players
-  for (ip = r->players.begin(); ip != r->players.end(); ip++)
-    (*ip)->life = min((*ip)->life + bonus, max_life);
+  std::list<Player*>::iterator ip;  //iterator for players
+  for (ip = r->players.begin(); ip != r->players.end(); ip++) {
+    (*ip)->life = std::min((*ip)->life + bonus, max_life);
+  }
 }

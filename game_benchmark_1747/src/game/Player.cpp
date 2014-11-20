@@ -19,7 +19,8 @@
 #include "Player.h"
 #include <math.h>
 
-Player::Player(IPaddress adr) {
+Player::Player(IPaddress adr)
+    : owned_mutex(SDL_CreateMutex()) {
   int i;
   memset(name, 0, MAX_PLAYER_NAME);
   for (i = 0; i < 8; i++)
@@ -34,7 +35,7 @@ Player::Player(IPaddress adr) {
   attr = 0;
   dir = 0;
   count = 0;
-  mutex = SDL_CreateMutex();
+  mutex = owned_mutex;
   time_of_last_message = 0;
 }
 
@@ -55,8 +56,10 @@ double Player::getDistance(Player* pl) {
 
 void Player::useObject(GameObject* o) {
   SDL_LockMutex(mutex);
-  if (life < 100)
-    o->quantity--, life++;
+  if (life < 100) {
+    o->quantity--;
+    life++;
+  }
   SDL_UnlockMutex(mutex);
 }
 

@@ -69,12 +69,9 @@ void ServerData::dataFromConfigurator(Configurator &conf) {
   this->wm.size.y = this->wm.size.x; //conf.getIntAttribute("map.height") * CLIENT_MATRIX_SIZE;
   this->wm.regmin.x = conf.getIntAttribute(
       "map.region_min_width") * CLIENT_MATRIX_SIZE;
-  this->wm.regmin.y = conf.getIntAttribute(
-      "map.region_min_height") * CLIENT_MATRIX_SIZE;
-  this->wm.regmax.x = conf.getIntAttribute(
-      "map.region_max_width") * CLIENT_MATRIX_SIZE;
-  this->wm.regmax.y = conf.getIntAttribute(
-      "map.region_max_height") * CLIENT_MATRIX_SIZE;
+  this->wm.regmin.y = this->wm.regmin.x;
+  this->wm.regmax.x = this->wm.regmin.x;
+  this->wm.regmax.y =this->wm.regmin.x;
   if (this->wm.size.x <= 0 || this->wm.size.y <= 0)
     throw "Config file: Invalid map dimensions";
 

@@ -251,10 +251,10 @@ void ClientRenderModule::renderSingleFrame() {
             0, 1, 0); /* up direction */
 
   /* draw floor */
-  for (i = max(0, px - MAX_CLIENT_VIEW);
-      i <= min(client_data->mapx, px + MAX_CLIENT_VIEW); i++)
-    for (j = max(0, py - MAX_CLIENT_VIEW);
-        j <= min(client_data->mapy, py + MAX_CLIENT_VIEW); j++)
+  for (i = std::max(0, px - MAX_CLIENT_VIEW);
+      i <= std::min(client_data->mapx, px + MAX_CLIENT_VIEW); i++)
+    for (j = std::max(0, py - MAX_CLIENT_VIEW);
+        j <= std::min(client_data->mapy, py + MAX_CLIENT_VIEW); j++)
       //for ( i = x1; i < x2; i++ )
       //	for ( j = y1; j < y2; j++ )
       wfloor->render(i, j);

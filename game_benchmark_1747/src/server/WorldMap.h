@@ -53,6 +53,8 @@ class WorldMap {
   void balance_lightest();
   void balance_spread();
 
+  void mergePlayersWithinRegions();
+
   bool isOverloaded(int n_pl);
   void reassignRegion(Region* r, int new_layout);
 

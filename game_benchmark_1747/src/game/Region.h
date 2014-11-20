@@ -2,7 +2,8 @@
 #define REGION_H_
 
 #include <list>
-using namespace std;
+#include <atomic>
+
 
 #include "../General.h"
 
@@ -12,19 +13,31 @@ using namespace std;
 struct Region;
 
 struct RegionGroup {
-  RegionGroup(void);
-  RegionGroup(int num_regions_);
+  RegionGroup(RegionGroup *);
+  RegionGroup(int num_regions_, RegionGroup *parent_=nullptr);
   virtual ~RegionGroup(void);
   virtual void update(void);
   virtual Region *find(int x, int y);
   RegionGroup * sub_regions[4];
 
+  // Calculated on-line.
+  std::atomic<int> num_player_interactions_;
+
+  // "cached" version of the number of interactions, so that we can reset
+  // `num_player_interactions` when we call `update`.
+  int num_player_interactions;
   int num_players;
   int num_regions;
+
+  SDL_mutex *player_mutex;
+  RegionGroup *parent;
+
+  static void addInteraction(RegionGroup *g1, RegionGroup *g2);
 };
 
 struct Region : public RegionGroup {
-  Region();
+  Region(void) = delete;
+  Region(RegionGroup *);
   virtual ~Region();
   virtual Region *find(int x, int y);
   virtual void update();
@@ -35,9 +48,9 @@ struct Region : public RegionGroup {
 
   int t_id;	// = thread_id of the thread handling the players from this region
 
- std::list<Player*> players;
+  std::list<Player*> players;
 
- std::list<GameObject*> objects;
+  std::list<GameObject*> objects;
 
   SDL_mutex *mutex;
 };
