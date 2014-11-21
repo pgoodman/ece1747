@@ -183,5 +183,23 @@ TRACEPOINT_LOGLEVEL(
 	trace_LB,
   tp_quest_end,
 	TRACE_WARNING)
+
+TRACEPOINT_EVENT(
+	trace_LB,
+	tp_region_summary,
+	TP_ARGS(int, num_players, int, num_interactions, int , pos_x, int, pos_y),
+	TP_FIELDS(
+		ctf_integer(int,num_players , num_players)
+		ctf_integer(int,num_interactions , num_interactions)
+		ctf_integer(int,pos_x , pos_x)
+		ctf_integer(int,pos_y , pos_y)
+	)
+)
+
+TRACEPOINT_LOGLEVEL(
+	trace_LB,
+  tp_player_merge,
+	TRACE_WARNING)
+
 #endif
 #include <lttng/tracepoint-event.h>

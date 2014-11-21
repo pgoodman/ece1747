@@ -563,8 +563,8 @@ void WorldMap::mergePlayersWithinRegions() {
   for (auto region : all_regions) {
     double num_players = region->num_players;
     double num_interactions = region->num_player_interactions;
-    double interaction_density = num_interactions / num_players;
-
+    double interaction_density = num_players ? num_interactions / num_players: 0.0;
+    tracepoint(trace_LB, tp_region_summary, num_players, num_interactions, region->pos.x, region->pos.y );
     // Merge if there are few interactions or many interactions.
     if (0.5 > interaction_density || 1.5 < interaction_density) {
       for (auto player : region->players) {
