@@ -1,4 +1,6 @@
 #include "Region.h"
+#include <iostream>
+#include <math.h>
 
 RegionGroup::RegionGroup(RegionGroup *parent_)
     : num_player_interactions_(ATOMIC_VAR_INIT(0)) {
@@ -16,6 +18,7 @@ RegionGroup::RegionGroup(RegionGroup *parent_)
 RegionGroup::RegionGroup(int num_regions_, RegionGroup *parent_)
     : num_player_interactions_(ATOMIC_VAR_INIT(0)) {
   num_regions = num_regions_;
+	std::cout <<"new region nb: "<<num_regions<<std::endl;
   if (4 == num_regions) {
     sub_regions[0] = new Region(this);
     sub_regions[1] = new Region(this);
@@ -52,20 +55,23 @@ void RegionGroup::update(void)
 }
 
 Region *RegionGroup::find(int x, int y) {
-  auto split = num_regions / 2;
+  //the sqrt gives use the side lenght of the regiongroup
+  //and we want to divide that by 2 to get the split
+  auto split = sqrt(num_regions)/2 ;
+
   auto x_split = x - split;
   auto y_split = y - split;
   if (x < split) {
     if (y < split) {
       return sub_regions[0]->find(x, y);
     } else {
-      return sub_regions[0]->find(x, y_split);
+      return sub_regions[1]->find(x, y_split);
     }
   } else {
     if (y < split) {
-      return sub_regions[0]->find(x_split, y);
+      return sub_regions[2]->find(x_split, y);
     } else {
-      return sub_regions[0]->find(x_split, y_split);
+      return sub_regions[3]->find(x_split, y_split);
     }
   }
 }

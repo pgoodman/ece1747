@@ -1,5 +1,3 @@
-client
-server
 *.o
 *.log
 .project

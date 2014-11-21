@@ -7,7 +7,7 @@
 ## Compilation parameters
 
 CC = clang
-CXX = clang++ -std=c++11 -stdlib=libc++
+CXX = clang++ -std=c++11 #-stdlib=libc++
 DEBUG_FLAGS = -O0 -g3 
 
 ERROR_FLAGS =
