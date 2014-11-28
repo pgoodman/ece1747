@@ -45,6 +45,15 @@ def process_trace():
     quest_handlers = []
     max_value = -1
 
+    stage1_time = defaultdict(lambda: [])
+    stage12_barrier_time = defaultdict(lambda: [])
+
+    stage2_time = defaultdict(lambda: [])
+    stage23_barrier_time = defaultdict(lambda: [])
+    
+    stage3_time = defaultdict(lambda: [])
+    stage31_barrier_time = defaultdict(lambda: [])
+    
     # iterate events
     for event in col.events:
         # Special event that allows us to associate `tid`s with `vtid`s, so that
@@ -55,8 +64,12 @@ def process_trace():
             tid_to_vtid[tid] = vtid
             vtid_to_tid[vtid] = tid
 
+        elif "begin_first_stage" in event.name:
+            print(event['time'])
+            exit()
+
         # Get the first set of info from stage 1 for a given thread.
-        elif "first_stage" in event.name:
+        elif "end_first_stage" in event.name:
             it = Iteration()
             it.num_req = event['num_req']
             it.proc_time = event['proc_time']
@@ -65,7 +78,7 @@ def process_trace():
 
         # Extend the information from the first stage with that of the
         # third stage.
-        elif "third_stage" in event.name:
+        elif "end_third_stage" in event.name:
             vtid = int(event['vtid'])
             it = threads[vtid][-1]
             it.num_update = event['num_update']
@@ -87,11 +100,11 @@ def process_trace():
 
     # Open up CSV writers for each of the various kinds of charts that we
     # want to show.
-    quest_writer = csv.writer(open("quests.dat", "w"))
-    num_req_writer = csv.writer(open("num_req.dat", "w"))
-    proc_time_writer = csv.writer(open("proc_time.dat", "w"))
-    num_update_writer = csv.writer(open("num_update.dat", "w"))
-    sent_time_writer = csv.writer(open("sent_time.dat", "w"))
+    quest_writer = csv.writer(open("/tmp/quests.dat", "w"))
+    num_req_writer = csv.writer(open("/tmp/num_req.dat", "w"))
+    proc_time_writer = csv.writer(open("/tmp/proc_time.dat", "w"))
+    num_update_writer = csv.writer(open("/tmp/num_update.dat", "w"))
+    sent_time_writer = csv.writer(open("/tmp/sent_time.dat", "w"))
 
     # Double check that we have exactly 1000 events.
     num_events = min(len(events) for events in threads.values())    

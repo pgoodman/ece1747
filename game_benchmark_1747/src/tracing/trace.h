@@ -52,8 +52,7 @@ TRACEPOINT_EVENT(
 	trace_LB,
 	tp_proc_entry,
 	TP_ARGS(),
-	TP_FIELDS(
-	)
+	TP_FIELDS()
 )
 
 
@@ -94,11 +93,23 @@ TRACEPOINT_LOGLEVEL(
   TRACE_WARNING)
 
 
+TRACEPOINT_EVENT(
+  trace_LB,
+  tp_begin_first_stage,
+  TP_ARGS(),
+  TP_FIELDS()
+)
+
+TRACEPOINT_LOGLEVEL(
+  trace_LB,
+  tp_begin_first_stage,
+  TRACE_WARNING)
+
 //Timing for the first stage that is receiving
 //requests from the clients
 TRACEPOINT_EVENT(
 	trace_LB,
-	tp_first_stage,
+	tp_end_first_stage,
 	TP_ARGS(int, num_req, int, proc_time),
 	TP_FIELDS(
 		ctf_integer(int, num_req , num_req)
@@ -108,14 +119,50 @@ TRACEPOINT_EVENT(
 
 TRACEPOINT_LOGLEVEL(
 	trace_LB,
-  tp_first_stage,
+  tp_end_first_stage,
 	TRACE_WARNING)
+
+TRACEPOINT_EVENT(
+  trace_LB,
+  tp_begin_second_stage,
+  TP_ARGS(),
+  TP_FIELDS()
+)
+
+TRACEPOINT_LOGLEVEL(
+  trace_LB,
+  tp_begin_second_stage,
+  TRACE_WARNING)
+
+TRACEPOINT_EVENT(
+  trace_LB,
+  tp_end_second_stage,
+  TP_ARGS(),
+  TP_FIELDS()
+)
+
+TRACEPOINT_LOGLEVEL(
+  trace_LB,
+  tp_end_second_stage,
+  TRACE_WARNING)
+
+TRACEPOINT_EVENT(
+  trace_LB,
+  tp_begin_third_stage,
+  TP_ARGS(),
+  TP_FIELDS()
+)
+
+TRACEPOINT_LOGLEVEL(
+  trace_LB,
+  tp_begin_third_stage,
+  TRACE_WARNING)
 
 // number of request sent and overall timing in the
 // third phase
 TRACEPOINT_EVENT(
 	trace_LB,
-	tp_third_stage,
+	tp_end_third_stage,
 	TP_ARGS(int, num_update, int, send_time),
 	TP_FIELDS(
 		ctf_integer(int, num_update , num_update)
@@ -125,7 +172,7 @@ TRACEPOINT_EVENT(
 
 TRACEPOINT_LOGLEVEL(
 	trace_LB,
-  tp_third_stage,
+	tp_end_third_stage,
 	TRACE_WARNING)
 
 TRACEPOINT_EVENT(

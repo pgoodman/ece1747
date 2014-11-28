@@ -48,8 +48,8 @@ WorldUpdateModule::WorldUpdateModule(int id, MessageModule *_comm,
 int num_iterations = 0;
 int last_quest_tid = -1;
 const int max_num_iterations = 2000;
-const int quest_begin = 3000;
-const int quest_end = 13000;
+const int quest_begin = 300;
+const int quest_end = 1300;
 
 void WorldUpdateModule::run() {
   Uint32 start_time, processing_begin;
@@ -75,6 +75,8 @@ void WorldUpdateModule::run() {
     double processing_total = 0;
     start_time = SDL_GetTicks();
     timeout = sd->regular_update_interval;
+
+    tracepoint(trace_LB, tp_begin_first_stage);
 
     while ((m = comm->receive(timeout, t_id)) != NULL) {
       ++num_req_recvd;
@@ -118,22 +120,17 @@ void WorldUpdateModule::run() {
       processing_total += (SDL_GetTicks() - processing_begin);
       delete m;
       timeout = sd->regular_update_interval - (SDL_GetTicks() - start_time);
-      //printf("1 %d\n", processing_total);
       if (((int) timeout) < 0) {
         timeout = 0;
-        //break;
       }
     }
 
-    //Number of requests received per thread
-
-    //Moving average of the time spent processing the requests per thread
-    //one tick is 1 msec, so we multply by 1000 to get it in usec
-
-    tracepoint(trace_LB, tp_first_stage, (int ) num_req_recvd,
-               (int ) processing_total);
+    tracepoint(trace_LB, tp_end_first_stage, (int) num_req_recvd,
+               (int) processing_total);
 
     SDL_WaitBarrier(barrier);
+
+    tracepoint(trace_LB, tp_begin_second_stage);
 
     if (t_id == 0) {
       sd->wm.balance();
@@ -166,7 +163,11 @@ void WorldUpdateModule::run() {
       num_iterations++;
     }
 
+    tracepoint(trace_LB, tp_end_second_stage);
+
     SDL_WaitBarrier(barrier);
+
+    tracepoint(trace_LB, tp_begin_third_stage);
 
     start_time = SDL_GetTicks();
 
@@ -212,8 +213,9 @@ void WorldUpdateModule::run() {
     //one tick is 1 msec, so we multply by 1000 to get it in usec
     sending_time = SDL_GetTicks() - start_time;
 
-    tracepoint(trace_LB, tp_third_stage, (int ) num_update_sent,
+    tracepoint(trace_LB, tp_end_third_stage, (int ) num_update_sent,
                (int ) sending_time);
+
     SDL_WaitBarrier(barrier);
 
     // Stop after 3000 iterations of the loop.
