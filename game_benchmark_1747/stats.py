@@ -45,17 +45,17 @@ def process_trace():
     quest_handlers = []
     max_value = -1
 
-    stage1_time = defaultdict(lambda: [])
-    stage12_barrier_time = defaultdict(lambda: [])
+    stage1_begin_time = defaultdict(lambda: [])
+    stage2_begin_time = defaultdict(lambda: [])
+    stage3_begin_time = defaultdict(lambda: [])
 
-    stage2_time = defaultdict(lambda: [])
-    stage23_barrier_time = defaultdict(lambda: [])
-    
-    stage3_time = defaultdict(lambda: [])
-    stage31_barrier_time = defaultdict(lambda: [])
+    stage1_end_time = defaultdict(lambda: [])
+    stage2_end_time = defaultdict(lambda: [])
+    stage3_end_time = defaultdict(lambda: [])
     
     # iterate events
     for event in col.events:
+
         # Special event that allows us to associate `tid`s with `vtid`s, so that
         # we don't get confused :D
         if "thread_begin" in event.name:
@@ -65,8 +65,8 @@ def process_trace():
             vtid_to_tid[vtid] = tid
 
         elif "begin_first_stage" in event.name:
-            print(event['time'])
-            exit()
+            vtid = int(event['vtid'])
+            stage1_begin_time[vtid].append(event.timestamp)
 
         # Get the first set of info from stage 1 for a given thread.
         elif "end_first_stage" in event.name:
@@ -75,6 +75,19 @@ def process_trace():
             it.proc_time = event['proc_time']
             vtid = int(event['vtid'])
             threads[vtid].append(it)
+            stage1_end_time[vtid].append(event.timestamp)
+
+        elif "begin_second_stage" in event.name:
+            vtid = int(event['vtid'])
+            stage2_begin_time[vtid].append(event.timestamp)
+
+        elif "end_second_stage" in event.name:
+            vtid = int(event['vtid'])
+            stage2_end_time[vtid].append(event.timestamp)
+
+        elif "begin_third_stage" in event.name:
+            vtid = int(event['vtid'])
+            stage3_begin_time[vtid].append(event.timestamp)
 
         # Extend the information from the first stage with that of the
         # third stage.
@@ -87,12 +100,60 @@ def process_trace():
             if 2 <= len(threads[vtid]):
                 moving_average(threads[vtid][-2], it)
 
+            stage3_end_time[vtid].append(event.timestamp)
+
         elif "quest_manager" in event.name:
             tid = int(event['tid'])
             vtid = tid_to_vtid[tid]  # Don't use the event `vtid`.
             time = len(threads[vtid])
             quest_handlers.append((time, vtid))
     
+    vtids = list(threads.keys())
+
+    def average_stage_time(begin_ls, end_ls):
+        stage_time = zip(begin_ls, end_ls)
+        stage_time = tuple(map(lambda x: x[1] - x[0], stage_time))
+        return round((sum(stage_time) / float(len(stage_time))) / 1000000000.0, 6)
+
+    def average_lock_time(begin_ls, end_ls):
+        return average_stage_time(begin_ls, end_ls)
+
+    stage1_time = {}
+    stage12_time = {}
+    stage2_time = {}
+    stage23_time = {}
+    stage3_time = {}
+    stage31_time = {}
+
+    # Figure out the average time spent on each stage per thread.
+    for vtid in vtids:
+        stage1_time[vtid] = average_stage_time(stage1_begin_time[vtid],
+                                               stage1_end_time[vtid])
+        stage2_time[vtid] = average_stage_time(stage1_begin_time[vtid],
+                                               stage1_end_time[vtid])
+        stage3_time[vtid] = average_stage_time(stage1_begin_time[vtid],
+                                               stage1_end_time[vtid])
+
+        stage12_time[vtid] = average_stage_time(stage1_end_time[vtid],
+                                                stage2_begin_time[vtid])
+        stage23_time[vtid] = average_stage_time(stage2_end_time[vtid],
+                                                stage3_begin_time[vtid])
+        stage31_time[vtid] = average_stage_time(stage3_end_time[vtid],
+                                                stage1_begin_time[vtid][1:])
+
+    for vtid in vtids:
+        times = [
+            stage1_time[vtid],
+            stage12_time[vtid],
+            stage2_time[vtid],
+            stage23_time[vtid],
+            stage3_time[vtid],
+            stage31_time[vtid],
+        ]
+        total_time = sum(times)
+        avg_times = tuple(map(lambda x: x / total_time, times))
+        print(vtid, avg_times)
+
     # Add on a sentinel quest handler event, that makes sure that the below
     # `for` loop that pokes in `0`s into `quest_events` will always have events
     # up until iteration where the quest is ending.
@@ -105,10 +166,11 @@ def process_trace():
     proc_time_writer = csv.writer(open("/tmp/proc_time.dat", "w"))
     num_update_writer = csv.writer(open("/tmp/num_update.dat", "w"))
     sent_time_writer = csv.writer(open("/tmp/sent_time.dat", "w"))
+    stage_time = csv.writer(open("/tmp/stage_time.dat", "w"))
+    stage_breakdown = csv.writer(open("/tmp/stage_breakdown.dat", "w"))
 
     # Double check that we have exactly 1000 events.
-    num_events = min(len(events) for events in threads.values())    
-    vtids = list(threads.keys())
+    num_events = min(len(events) for events in threads.values())
 
     # Fill in every event as "missing".
     quest_events = {}
