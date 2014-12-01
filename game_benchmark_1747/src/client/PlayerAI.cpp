@@ -56,7 +56,9 @@ bool PlayerAI::lifeBelow(int x) {
 }
 
 bool PlayerAI::weakPlayerNear(int *x, int *y) {
-  return findNearObject(x, y, MAX_CLIENT_VIEW, CELL_PLAYER, 10, cd->life - 1);
+  // Biased to make players more aggressive.
+  auto life = cd->life > 90 ? cd->life : 90;
+  return findNearObject(x, y, MAX_CLIENT_VIEW, CELL_PLAYER, 0, life);
 }
 
 bool PlayerAI::strongPlayerNear(int *x, int *y) {

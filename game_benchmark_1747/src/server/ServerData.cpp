@@ -106,6 +106,7 @@ void ServerData::dataFromConfigurator(Configurator &conf) {
   this->display_actions = conf.getIntAttribute("display.actions");
   this->display_user_on_off = conf.getIntAttribute("display.user_on_off");
   this->display_migrations = conf.getIntAttribute("display.migrations");
+  this->balance_players = conf.getIntAttribute("server.balance_players");
 }
 
 ServerData::ServerData(char* conf_file) {

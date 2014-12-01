@@ -32,7 +32,7 @@ void WorldMap::generate() {
   n_regs.y = size.y / regmin.y;
   int num_regions = n_regs.x * n_regs.y;
   int regions_per_thread = (num_regions - 1) / sd->num_threads + 1;
-  std::cout <<"Number of regions: "<< num_regions<<std::endl;
+
   if (num_regions == 1) {
     region_quad_tree = new Region(nullptr);
   } else {
@@ -42,7 +42,6 @@ void WorldMap::generate() {
   int region_id = 0;
   for (i = 0, pos.x = 0; i < n_regs.x; i++, pos.x += regmin.x) {
     for (j = 0, pos.y = 0; j < n_regs.y; j++, pos.y += regmin.y) {
-      std::cout<<".";
       //Add mutex for each region
       SDL_mutex *mutex = SDL_CreateMutex();
       this->region_mutexes.push_back(mutex);
@@ -54,7 +53,6 @@ void WorldMap::generate() {
       ++region_id;
       thread_regions[t_id].insert(region);
       all_regions.insert(region);
-      std::cout<<"size of all_regions: "<< all_regions.size()<<std::endl; 
     }
   }
 
@@ -552,15 +550,16 @@ void WorldMap::balance() {
       return;
     }
   }
-  // Updates player counts in all regions / region groups.
-  region_quad_tree->update();
+  if (sd->balance_players) {
+    // Updates player counts in all regions / region groups.
+    region_quad_tree->update();
 
-  // Merge player mutexes within their regions.
-  mergePlayersWithinRegions();
+    // Merge player mutexes within their regions.
+    mergePlayersWithinRegions();
+  }
 }
 
 void WorldMap::mergePlayersWithinRegions() {
-  std::cout<<"size of all_regions: "<< all_regions.size()<<std::endl; 
   for (auto region : all_regions) {
     double num_players = region->num_players;
     double num_interactions = region->num_player_interactions;
@@ -579,27 +578,4 @@ void WorldMap::mergePlayersWithinRegions() {
       }
     }
   }
-
-
-#if 0
-  for (auto region : all_regions) {
-    if (region->num_players > 4) {
-
-      // Split player mutexes.
-      if (region->merged_player_mutexes) {
-        for (auto player : region->players) {
-          player->mutex = player->owned_mutex;
-        }
-        region->merged_player_mutexes = false;
-      }
-
-    // Merge player mutexes with the region mutex.
-    } else if (!region->merged_player_mutexes) {
-      for (auto player : region->players) {
-        player->mutex = region->player_mutex;
-      }
-      region->merged_player_mutexes = true;
-    }
-  }
-#endif
 }

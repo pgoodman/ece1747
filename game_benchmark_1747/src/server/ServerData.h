@@ -70,6 +70,8 @@ struct ServerData {
   int display_user_on_off;
   int display_migrations;
 
+  int balance_players;
+
   ServerData(char* conf_file);
 
  private:
