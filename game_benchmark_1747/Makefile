@@ -18,7 +18,7 @@ ERROR_FLAGS += -Wuninitialized -Wsometimes-uninitialized
 ERROR_FLAGS += -Wmissing-declarations -Wwrite-strings
 ERROR_FLAGS += -fstrict-aliasing -Wstrict-aliasing=2 -Wstrict-overflow=2
 ERROR_FLAGS += -Wcast-align -Wredundant-decls -Wvolatile-register-var
-ERROR_FLAGS += -Wstack-protector -Wframe-larger-than=4096
+ERROR_FLAGS += -Wstack-protector #-Wframe-larger-than=4096
 ERROR_FLAGS += -Wno-unused-parameter -Wno-cast-align -Wno-gnu-zero-variadic-macro-arguments
 
 SDL_CFLAGS := $(shell sdl-config --cflags)
