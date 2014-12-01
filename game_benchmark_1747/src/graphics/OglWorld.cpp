@@ -102,7 +102,7 @@ void OglWorld::beginRender() {
   glViewport(0, 0, (GLint) resx, (GLint) resy);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(45.0f, (GLfloat) resx / (GLfloat) resy, 0.1f, 100.0f);
+  gluPerspective(90.0f, (GLfloat) resx / (GLfloat) resy, 0.1f, 100.0f);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();

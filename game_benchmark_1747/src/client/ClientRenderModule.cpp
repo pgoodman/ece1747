@@ -218,6 +218,7 @@ void ClientRenderModule::renderSingleFrame() {
   int x1, x2, y1, y2; /* map coordinates */
   float pfx, pfy; /* interpolated player position (for main player) */
   float pfx2, pfy2; /* interpolated player position (for another player) */
+
   MapCell map[CLIENT_MATRIX_SIZE][CLIENT_MATRIX_SIZE];
   OglObject *player_model;/* type of player */
 
@@ -246,9 +247,9 @@ void ClientRenderModule::renderSingleFrame() {
   pfy = pmd.pfy;
 
   /* set camera and lights */
-  gluLookAt(pfx - 4.0, 6.0, pfy - 4.0, /* position */
-            pfx - 0.5, 0.0, pfy - 0.5, /* look at */
-            0, 1, 0); /* up direction */
+  gluLookAt(pfx, 6.0, pfy, /* position */
+            pfx , 0.0, pfy, /* look at */
+            0.5, 0.5, 0); /* up direction */
 
   /* draw floor */
   for (i = std::max(0, px - MAX_CLIENT_VIEW);
