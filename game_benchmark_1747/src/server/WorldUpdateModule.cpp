@@ -157,6 +157,7 @@ void WorldUpdateModule::run() {
         sd->quest_pos.y = (rand() % sd->wm.n_regs.y)
             * sd->wm.regmin.y+ MAX_CLIENT_VIEW;
         sd->send_start_quest = 1;
+        printf("<<");
       }
       if (num_iterations >= quest_begin && num_iterations < quest_end) {
 
@@ -169,6 +170,7 @@ void WorldUpdateModule::run() {
       } else if (num_iterations == quest_end) {
         sd->wm.rewardPlayers(sd->quest_pos);
         sd->send_end_quest = 1;
+        printf(">>");
       }
       num_iterations++;
     }
