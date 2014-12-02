@@ -72,6 +72,7 @@ void WorldUpdateModule::run() {
   /* main loop */
   while (true) {
     int num_req_recvd = 0;
+    int timeout_adjust = 0;
     double processing_total = 0;
     start_time = SDL_GetTicks();
     timeout = sd->regular_update_interval;
@@ -83,11 +84,14 @@ void WorldUpdateModule::run() {
       processing_begin = SDL_GetTicks();
       addr = m->getAddress();
       type = m->getType();
-      if (!(p = sd->wm.findPlayer(addr, t_id))) {
-        if (MESSAGE_CS_JOIN != type) goto next;
-      }
-
       ++num_req_recvd;
+      if (!(p = sd->wm.findPlayer(addr, t_id))) {
+        if (MESSAGE_CS_JOIN != type) {
+          printf("*");
+          ++timeout_adjust;  // Force it to make progress.
+          goto next;
+        }
+      }
 
       switch (type) {
         case MESSAGE_CS_JOIN:
@@ -124,7 +128,7 @@ void WorldUpdateModule::run() {
     next:
       processing_total += (SDL_GetTicks() - processing_begin);
       delete m;
-      timeout = sd->regular_update_interval - (SDL_GetTicks() - start_time);
+      timeout = sd->regular_update_interval - (SDL_GetTicks() - start_time) - timeout_adjust;
       if (((int) timeout) < 0) {
         timeout = 0;
       }
@@ -138,6 +142,7 @@ void WorldUpdateModule::run() {
     tracepoint(trace_LB, tp_begin_second_stage);
 
     if (t_id == 0) {
+      printf("-");
       sd->wm.balance();
 
       if (rand() % 100 < 10)
@@ -253,7 +258,8 @@ void WorldUpdateModule::handleClientJoinRequest(Player* p, IPaddress addr) {
   comm->send((Message*) mok, t_id);
   tracepoint(trace_LB, tp_player_join);
   if (sd->display_user_on_off)
-    printf("New player: %s (%d,%d)\n", p->name, p->pos.x, p->pos.y);
+    printf(".");
+//    printf("New player: %s (%d,%d)\n", p->name, p->pos.x, p->pos.y);
 }
 
 /* remove client from WorldMap and send an ok_leave message */

@@ -3,8 +3,9 @@
 set -x
 
 USERNAME=$SUDO_USER
-SERVER_CPUS=4
-CLIENT_CPUS=60
+NUM_CPUS=64
+SERVER_CPUS=$1
+CLIENT_CPUS=$((NUM_CPUS-SERVER_CPUS))
 #cgroup for server
 sudo cgcreate -t $USERNAME:$USERNAME -a $USERNAME:$USERNAME -g cpuset:simmud-server
 sudo cgset -r cpuset.cpus="0-$((SERVER_CPUS-1))" simmud-server
