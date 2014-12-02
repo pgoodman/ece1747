@@ -79,11 +79,15 @@ void WorldUpdateModule::run() {
     tracepoint(trace_LB, tp_begin_first_stage);
 
     while ((m = comm->receive(timeout, t_id)) != NULL) {
-      ++num_req_recvd;
+
       processing_begin = SDL_GetTicks();
       addr = m->getAddress();
       type = m->getType();
-      p = sd->wm.findPlayer(addr, t_id);
+      if (!(p = sd->wm.findPlayer(addr, t_id))) {
+        if (MESSAGE_CS_JOIN != type) goto next;
+      }
+
+      ++num_req_recvd;
 
       switch (type) {
         case MESSAGE_CS_JOIN:
@@ -117,6 +121,7 @@ void WorldUpdateModule::run() {
               (addr.host >> 16) & 0xFF, addr.host >> 24, addr.port);
       }
 
+    next:
       processing_total += (SDL_GetTicks() - processing_begin);
       delete m;
       timeout = sd->regular_update_interval - (SDL_GetTicks() - start_time);

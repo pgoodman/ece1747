@@ -56,9 +56,8 @@ bool PlayerAI::lifeBelow(int x) {
 }
 
 bool PlayerAI::weakPlayerNear(int *x, int *y) {
-  // Biased to make players more aggressive.
-  auto life = cd->life > 90 ? cd->life : 90;
-  return findNearObject(x, y, MAX_CLIENT_VIEW, CELL_PLAYER, 0, life);
+  // Pick all the fights (with max life = 100).
+  return findNearObject(x, y, MAX_CLIENT_VIEW, CELL_PLAYER, 0, 100);
 }
 
 bool PlayerAI::strongPlayerNear(int *x, int *y) {
@@ -202,6 +201,7 @@ bool PlayerAI::checkFood(int amount) {
 }
 
 bool PlayerAI::checkStrongPlayer() {
+  return false;  // Don't run away from any fight!
   int x, y;
   if (!strongPlayerNear(&x, &y))
     return false;
@@ -311,7 +311,7 @@ PlayerAI_Actions PlayerAI::takeAction() {
   /* select a new action */
   switch (purpose) {
     case BASIC:
-      checkFood(100) || checkQuest() || checkStrongPlayer() || checkWeakPlayer()
+      checkFood(10) || checkQuest() || checkStrongPlayer() || checkWeakPlayer()
           || tryToExplore();
       break;
     case SEEKING_QUEST:
