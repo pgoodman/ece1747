@@ -64,7 +64,7 @@
 
 /* the distance at which the client views (in meters/cells) */
 /* (the client is in the middle of a square of size 2*MAX_CLIENT_VIEW+1) */
-#define MAX_CLIENT_VIEW		16
+#define MAX_CLIENT_VIEW		8
 #define CLIENT_MATRIX_SIZE	(2 * MAX_CLIENT_VIEW + 1)
 
 /* minimum time between rendering two frames (in miliseconds) */
