@@ -83,7 +83,7 @@ void WorldUpdateModule::run() {
     while ((m = comm->receive(2, t_id))) {
       processing_begin = SDL_GetTicks();
       if (!m) {
-        if ((processing_begin - start_time) >= sd->regular_update_interval) {
+        if ((processing_begin - start_time) >= (uint32_t)sd->regular_update_interval) {
           break;
         } else {
           continue;
