@@ -70,11 +70,16 @@ void Player::attackPlayer(Player* p2) {
     SDL_LockMutex(p2->mutex);SDL_LockMutex(this->mutex);
   }
 
+  p2->dir = -dir;
+
   /* update players */
-  if (p2->life > 1)
-    p2->life--, p2->dir = -dir;
-  if (life < 100)
-    life++;
+  /*if (p2->life > 1) {
+    p2->life -= 1;
+    if (0 >= p2->life) p2->life = 100;
+  }*/
+  //  p2->life--,
+  //if (life < 100)
+  //  life++;
 
   if (*(int*) this < *(int*) p2) {
     SDL_UnlockMutex(this->mutex);SDL_UnlockMutex(p2->mutex);
