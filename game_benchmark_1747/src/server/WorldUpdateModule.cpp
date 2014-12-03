@@ -80,12 +80,19 @@ void WorldUpdateModule::run() {
 
     if (do_trace) tracepoint(trace_LB, tp_begin_first_stage);
 
-    while ((m = comm->receive(timeout, t_id)) != NULL) {
-
+    while ((m = comm->receive(2, t_id))) {
       processing_begin = SDL_GetTicks();
+      if (!m) {
+        if ((processing_begin - start_time) >= sd->regular_update_interval) {
+          break;
+        } else {
+          continue;
+        }
+      }
       addr = m->getAddress();
       type = m->getType();
       ++num_req_recvd;
+
       if (!(p = sd->wm.findPlayer(addr, t_id))) {
         if (MESSAGE_CS_JOIN != type) {
           printf("*");
@@ -130,12 +137,13 @@ void WorldUpdateModule::run() {
     next:
       processing_total += (SDL_GetTicks() - processing_begin);
       delete m;
+      /*
       if (num_iterations < 200) {
         timeout = sd->regular_update_interval - (SDL_GetTicks() - start_time) - timeout_adjust;
         if (((int) timeout) < 0) {
           timeout = 0;
         }
-      }
+      }*/
 
       if (num_req_recvd >= 50) break;
     }
