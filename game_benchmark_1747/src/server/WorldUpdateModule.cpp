@@ -130,10 +130,12 @@ void WorldUpdateModule::run() {
     next:
       processing_total += (SDL_GetTicks() - processing_begin);
       delete m;
-      /*timeout = sd->regular_update_interval - (SDL_GetTicks() - start_time) - timeout_adjust;
-      if (((int) timeout) < 0) {
-        timeout = 0;
-      }*/
+      if (num_iterations < 200) {
+        timeout = sd->regular_update_interval - (SDL_GetTicks() - start_time) - timeout_adjust;
+        if (((int) timeout) < 0) {
+          timeout = 0;
+        }
+      }
 
       if (num_req_recvd >= 50) break;
     }
