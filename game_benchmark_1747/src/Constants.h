@@ -72,7 +72,7 @@
 
 /* client delay in miliseconds (interval between client actions) */
 /* (how fast can a human player take an action) */
-#define CLIENT_AI_DELAY		10
+#define CLIENT_AI_DELAY		100
 
 /* how much should a client wait for its action to take effect */
 #define AI_RETRY_COUNT		3
