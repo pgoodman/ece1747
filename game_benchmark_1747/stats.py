@@ -28,6 +28,11 @@ def process_trace():
         msg = 'Usage: python {} TRACEPATH'.format(sys.argv[0])
         raise ValueError(msg)
 
+    if "nomerge" in sys.argv[1]:
+        merged = "nomerge"
+    else:
+        merged = "merge"
+
     # a trace collection holds one to many traces
     col = babeltrace.TraceCollection()
 
@@ -149,8 +154,8 @@ def process_trace():
     # Open up CSV writers for each of the various kinds of charts that we
     # want to show.
     quest_writer = csv.writer(open("/tmp/quests.dat", "w"))
-    num_req_writer = csv.writer(open("/tmp/num_req.dat", "w"))
-    proc_time_writer = csv.writer(open("/tmp/proc_time.dat", "w"))
+    num_req_writer = csv.writer(open("/tmp/num_req_%s.dat" % merged, "w"))
+    proc_time_writer = csv.writer(open("/tmp/proc_time_%s.dat" % merged, "w"))
     num_update_writer = csv.writer(open("/tmp/num_update.dat", "w"))
     sent_time_writer = csv.writer(open("/tmp/sent_time.dat", "w"))
     stage_time = csv.writer(open("/tmp/stage_time.dat", "w"))

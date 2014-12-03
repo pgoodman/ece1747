@@ -134,6 +134,8 @@ void WorldUpdateModule::run() {
       if (((int) timeout) < 0) {
         timeout = 0;
       }
+
+      if (num_req_recvd >= 50) break;
     }
 
     if (do_trace) tracepoint(trace_LB, tp_end_first_stage, (int) num_req_recvd,
