@@ -47,10 +47,10 @@ WorldUpdateModule::WorldUpdateModule(int id, MessageModule *_comm,
 
 int num_iterations = 0;
 int last_quest_tid = -1;
-const int max_num_iterations = 2000;
-const int quest_begin = 300;
-const int quest_end = 1300;
-
+const int max_num_iterations = 1500;
+const int quest_begin = 3000;
+const int quest_end = 13000;
+int num_players = 0;
 void WorldUpdateModule::run() {
   Uint32 start_time, processing_begin;
   Uint32 timeout;
@@ -76,8 +76,9 @@ void WorldUpdateModule::run() {
     double processing_total = 0;
     start_time = SDL_GetTicks();
     timeout = sd->regular_update_interval;
+    auto do_trace = num_players > 0;
 
-    tracepoint(trace_LB, tp_begin_first_stage);
+    if (do_trace) tracepoint(trace_LB, tp_begin_first_stage);
 
     while ((m = comm->receive(timeout, t_id)) != NULL) {
 
@@ -95,6 +96,7 @@ void WorldUpdateModule::run() {
 
       switch (type) {
         case MESSAGE_CS_JOIN:
+          ++num_players;
           handleClientJoinRequest(p, addr);
           break;
         case MESSAGE_CS_LEAVE:
@@ -134,12 +136,12 @@ void WorldUpdateModule::run() {
       }
     }
 
-    tracepoint(trace_LB, tp_end_first_stage, (int) num_req_recvd,
+    if (do_trace) tracepoint(trace_LB, tp_end_first_stage, (int) num_req_recvd,
                (int) processing_total);
 
     SDL_WaitBarrier(barrier);
 
-    tracepoint(trace_LB, tp_begin_second_stage);
+    if (do_trace) tracepoint(trace_LB, tp_begin_second_stage);
 
     if (t_id == 0) {
       printf("-");
@@ -172,14 +174,15 @@ void WorldUpdateModule::run() {
         sd->send_end_quest = 1;
         printf(">>");
       }
-      num_iterations++;
+
+      if (num_players) num_iterations++;
     }
 
-    tracepoint(trace_LB, tp_end_second_stage);
+    if (do_trace) tracepoint(trace_LB, tp_end_second_stage);
 
     SDL_WaitBarrier(barrier);
 
-    tracepoint(trace_LB, tp_begin_third_stage);
+    if (do_trace) tracepoint(trace_LB, tp_begin_third_stage);
 
     start_time = SDL_GetTicks();
 
@@ -225,7 +228,7 @@ void WorldUpdateModule::run() {
     //one tick is 1 msec, so we multply by 1000 to get it in usec
     sending_time = SDL_GetTicks() - start_time;
 
-    tracepoint(trace_LB, tp_end_third_stage, (int ) num_update_sent,
+    if (do_trace) tracepoint(trace_LB, tp_end_third_stage, (int ) num_update_sent,
                (int ) sending_time);
 
     SDL_WaitBarrier(barrier);

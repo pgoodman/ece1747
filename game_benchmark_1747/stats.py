@@ -129,10 +129,10 @@ def process_trace():
     for vtid in vtids:
         stage1_time[vtid] = average_stage_time(stage1_begin_time[vtid],
                                                stage1_end_time[vtid])
-        stage2_time[vtid] = average_stage_time(stage1_begin_time[vtid],
-                                               stage1_end_time[vtid])
-        stage3_time[vtid] = average_stage_time(stage1_begin_time[vtid],
-                                               stage1_end_time[vtid])
+        stage2_time[vtid] = average_stage_time(stage2_begin_time[vtid],
+                                               stage2_end_time[vtid])
+        stage3_time[vtid] = average_stage_time(stage3_begin_time[vtid],
+                                               stage3_end_time[vtid])
 
         stage12_time[vtid] = average_stage_time(stage1_end_time[vtid],
                                                 stage2_begin_time[vtid])
@@ -140,19 +140,6 @@ def process_trace():
                                                 stage3_begin_time[vtid])
         stage31_time[vtid] = average_stage_time(stage3_end_time[vtid],
                                                 stage1_begin_time[vtid][1:])
-
-    for vtid in vtids:
-        times = [
-            stage1_time[vtid],
-            stage12_time[vtid],
-            stage2_time[vtid],
-            stage23_time[vtid],
-            stage3_time[vtid],
-            stage31_time[vtid],
-        ]
-        total_time = sum(times)
-        avg_times = tuple(map(lambda x: x / total_time, times))
-        print(vtid, avg_times)
 
     # Add on a sentinel quest handler event, that makes sure that the below
     # `for` loop that pokes in `0`s into `quest_events` will always have events
@@ -167,7 +154,25 @@ def process_trace():
     num_update_writer = csv.writer(open("/tmp/num_update.dat", "w"))
     sent_time_writer = csv.writer(open("/tmp/sent_time.dat", "w"))
     stage_time = csv.writer(open("/tmp/stage_time.dat", "w"))
-    stage_breakdown = csv.writer(open("/tmp/stage_breakdown.dat", "w"))
+    stage_breakdown = open("/tmp/stage_breakdown.dat", "w")
+
+    stage_breakdown.write(",Barrier 3,Stage 3,Barrier 2,Stage 2,Barrier 1,Stage 1\n")
+
+    for tid in range(len(vtids)):
+        vtid = tid_to_vtid[tid]
+        times = [
+            stage1_time[vtid],
+            stage12_time[vtid],
+            stage2_time[vtid],
+            stage23_time[vtid],
+            stage3_time[vtid],
+            stage31_time[vtid],
+        ]
+        total_time = sum(times)
+        avg_times = tuple(map(lambda x: x / total_time, times))
+        stage_breakdown.write("Thread %d," % (tid + 1))
+        stage_breakdown.write(",".join(str(f) for f in reversed(avg_times)))
+        stage_breakdown.write("\n")
 
     # Double check that we have exactly 1000 events.
     num_events = min(len(events) for events in threads.values())
