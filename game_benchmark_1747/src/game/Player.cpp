@@ -17,7 +17,9 @@
 
 #include "General.h"
 #include "Player.h"
+#include "Region.h"
 #include <math.h>
+#include <pthread.h>
 
 Player::Player(IPaddress adr)
     : owned_mutex(SDL_CreateMutex()) {
@@ -63,11 +65,24 @@ void Player::useObject(GameObject* o) {
   SDL_UnlockMutex(mutex);
 }
 
-void Player::attackPlayer(Player* p2) {
-  if (*(int*) this < *(int*) p2) {
-    SDL_LockMutex(this->mutex);SDL_LockMutex(p2->mutex);
+__thread int lock_count = 0;
+__thread int contention_count = 0;
+
+void Lock(SDL_mutex *m, Region *r) {
+  ++r->player_lock_count;
+  if (!pthread_mutex_trylock((pthread_mutex_t *) m)) {
+    ++r->player_contention_count;
+    SDL_LockMutex(m);
+  }
+}
+
+void Player::attackPlayer(Player* p2, Region *r1, Region *r2) {
+  if (this->mutex < p2->mutex) {
+    Lock(this->mutex, r1);Lock(p2->mutex, r2);
+  } else if (this->mutex > p2->mutex) {
+    Lock(p2->mutex, r2);Lock(this->mutex, r1);
   } else {
-    SDL_LockMutex(p2->mutex);SDL_LockMutex(this->mutex);
+    Lock(this->mutex, r1);
   }
 
   p2->dir = -dir;
@@ -81,11 +96,12 @@ void Player::attackPlayer(Player* p2) {
   //if (life < 100)
   //  life++;
 
-  if (*(int*) this < *(int*) p2) {
+  if (this->mutex < p2->mutex) {
+    SDL_UnlockMutex(p2->mutex);SDL_UnlockMutex(this->mutex);
+  } else if (this->mutex > p2->mutex) {
     SDL_UnlockMutex(this->mutex);SDL_UnlockMutex(p2->mutex);
   } else {
-    SDL_UnlockMutex(p2->mutex);SDL_UnlockMutex(this->mutex);
+    SDL_UnlockMutex(this->mutex);
   }
-
 }
 

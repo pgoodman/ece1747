@@ -189,6 +189,22 @@ TRACEPOINT_LOGLEVEL(
   tp_overloaded,
 	TRACE_WARNING)
 
+TRACEPOINT_EVENT(
+  trace_LB,
+  tp_contention,
+  TP_ARGS(int, region, int, num_locks, int, num_contended_locks),
+  TP_FIELDS(
+    ctf_integer(int,region , region)
+    ctf_integer(int,num_locks , num_locks)
+    ctf_integer(int,num_contended_locks , num_contended_locks)
+  )
+)
+
+TRACEPOINT_LOGLEVEL(
+  trace_LB,
+  tp_contention,
+  TRACE_WARNING)
+
 //thread managing region where the quest is located
 TRACEPOINT_EVENT(
 	trace_LB,

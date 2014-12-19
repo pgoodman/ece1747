@@ -21,6 +21,8 @@
 #include "../General.h"
 #include "GameObject.h"
 
+struct Region;
+
 class Player {
  public:
   /* player identification */
@@ -54,7 +56,7 @@ class Player {
   double getDistance(Player* pl);
 
   void useObject(GameObject* o);
-  void attackPlayer(Player* p2);
+  void attackPlayer(Player* p2, Region *r1, Region *r2);
 };
 
 #endif

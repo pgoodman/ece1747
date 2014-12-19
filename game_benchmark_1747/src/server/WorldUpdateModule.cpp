@@ -52,7 +52,7 @@ const int quest_begin = 3000;
 const int quest_end = 13000;
 int num_players = 0;
 void WorldUpdateModule::run() {
-  Uint32 start_time, processing_begin;
+  Uint32 start_time, processing_begin, processing_end;
   Uint32 timeout;
 
   Message *m;
@@ -80,15 +80,10 @@ void WorldUpdateModule::run() {
 
     if (do_trace) tracepoint(trace_LB, tp_begin_first_stage);
 
-    while ((m = comm->receive(2, t_id))) {
+    while ((m = comm->receive(timeout, t_id))) {
       processing_begin = SDL_GetTicks();
-      if (!m) {
-        if ((processing_begin - start_time) >= (uint32_t)sd->regular_update_interval) {
-          break;
-        } else {
-          continue;
-        }
-      }
+      if (!m) goto next;
+
       addr = m->getAddress();
       type = m->getType();
       ++num_req_recvd;
@@ -96,7 +91,6 @@ void WorldUpdateModule::run() {
       if (!(p = sd->wm.findPlayer(addr, t_id))) {
         if (MESSAGE_CS_JOIN != type) {
           printf("*");
-          ++timeout_adjust;  // Force it to make progress.
           goto next;
         }
       }
@@ -135,17 +129,13 @@ void WorldUpdateModule::run() {
       }
 
     next:
-      processing_total += (SDL_GetTicks() - processing_begin);
-      delete m;
-      /*
-      if (num_iterations < 200) {
-        timeout = sd->regular_update_interval - (SDL_GetTicks() - start_time) - timeout_adjust;
-        if (((int) timeout) < 0) {
-          timeout = 0;
-        }
-      }*/
+      if (m) delete m;
+      processing_end = SDL_GetTicks();
+      processing_total += (processing_end - processing_begin);
+      timeout_adjust = sd->regular_update_interval - (processing_end - start_time);
 
-      if (num_req_recvd >= 50) break;
+      if (timeout_adjust < 0) timeout = 0;
+      else timeout = (uint32_t) timeout_adjust;
     }
 
     if (do_trace) tracepoint(trace_LB, tp_end_first_stage, (int) num_req_recvd,
