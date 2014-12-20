@@ -195,7 +195,7 @@ void WorldMap::attackPlayer(Player* p, int attack_dir) {
   if (p2 != NULL)
     p->attackPlayer(p2, p_r, p2_r);
 
-  //RegionGroup::addInteraction(p_r, p2_r);
+  RegionGroup::addInteraction(p_r, p2_r);
 
   if (sd->display_actions)
     printf("Player %s attacks %s\n", p->name, p2->name);
@@ -563,22 +563,25 @@ void WorldMap::balance() {
 
 void WorldMap::mergePlayersWithinRegions() {
   for (auto region : all_regions) {
-    double num_acquires = region->player_lock_count;
-    double num_contended_acquires = region->player_contention_count;
-    double contention_ratio = region->player_lock_count ? num_contended_acquires / num_acquires : 0.0;
+    //double num_acquires = region->player_lock_count;
+    //double num_contended_acquires = region->player_contention_count;
+    //double contention_ratio = region->player_lock_count ? num_contended_acquires / num_acquires : 0.0;
 
-    //double num_players = region->num_players;
-    //double num_interactions = region->num_player_interactions;
-    //double interaction_density = num_players ? num_interactions / num_players: 0.0;
-    //tracepoint(trace_LB, tp_region_summary, num_players, num_interactions, region->pos.x, region->pos.y );
-    // Merge if there are few interactions or many interactions.
+    double num_players = region->num_players;
+    double num_interactions = region->num_player_interactions;
+    double interaction_density = num_players ? num_interactions / num_players: 0.0;
+    tracepoint(trace_LB, tp_region_summary, num_players, num_interactions, region->pos.x, region->pos.y );
 
-    int region_id = (int) reinterpret_cast<intptr_t>(region);
 
-    tracepoint(trace_LB, tp_contention, region_id, region->player_lock_count, region->player_contention_count);
+    //int region_id = (int) reinterpret_cast<intptr_t>(region);
+
+    //tracepoint(trace_LB, tp_contention, region_id, region->player_lock_count, region->player_contention_count);
 
     // Merge if contention is low enough.
-    if (0.02 >= contention_ratio) {
+    //if (0.02 >= contention_ratio) {
+
+    // Merge if there are few interactions or many interactions.
+    if (0.5 > interaction_density || 1.5 < interaction_density) {
       for (auto player : region->players) {
         player->mutex = region->player_mutex;
       }
@@ -591,7 +594,7 @@ void WorldMap::mergePlayersWithinRegions() {
     }
 
     // reset.
-    region->player_lock_count = 0;
-    region->player_contention_count = 0;
+    //region->player_lock_count = 0;
+    //region->player_contention_count = 0;
   }
 }
