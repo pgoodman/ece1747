@@ -7,7 +7,7 @@
 ## Compilation parameters
 
 CC = clang
-CXX = clang++ -std=c++11 #-stdlib=libc++
+CXX = clang++ -std=c++11 -stdlib=libc++
 DEBUG_FLAGS = -O0 -g3 
 
 ERROR_FLAGS =
@@ -36,8 +36,8 @@ SDL_LDFLAGS := $(shell sdl-config --libs)
 LDFLAGS := $(SDL_LDFLAGS) -lSDL_net -lm
 
 ## -lz is also needed when compiling with -D__COMPRESSED_MESSAGES__
-LDFLAGS_CLIENT = $(LDFLAGS) -lGL -lGLU
-LDFLAGS_SERVER = $(LDFLAGS) -ldl -llttng-ust
+LDFLAGS_CLIENT = $(LDFLAGS) -lGL -lpthread -lGLU
+LDFLAGS_SERVER = $(LDFLAGS) -ldl -lpthread -llttng-ust
 LDFLAGS_MASTER = $(LDFLAGS)
 
 ## Source and binary files

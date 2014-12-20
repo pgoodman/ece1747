@@ -29,6 +29,9 @@ struct RegionGroup {
   int num_players;
   int num_regions;
 
+  int player_lock_count;
+  int player_contention_count;
+
   SDL_mutex *player_mutex;
   RegionGroup *parent;
 

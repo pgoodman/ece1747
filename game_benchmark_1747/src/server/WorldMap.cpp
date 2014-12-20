@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <iostream>
 #include <algorithm>
 #include <iomanip>
@@ -185,15 +186,16 @@ void WorldMap::attackPlayer(Player* p, int attack_dir) {
   if (pos2.x < 0 || pos2.x >= size.x || pos2.y < 0 || pos2.y >= size.y)
     return;
 
+  auto p_r = getRegionByLocation(p->pos);
+
   /* get second player */
   Region* p2_r = getRegionByLocation(pos2);
   assert(p2_r);
   Player* p2 = Region_getPlayer(p2_r, pos2);
   if (p2 != NULL)
-    p->attackPlayer(p2);
+    p->attackPlayer(p2, p_r, p2_r);
 
-  auto p_r = getRegionByLocation(p->pos);
-  RegionGroup::addInteraction(p_r, p2_r);
+  //RegionGroup::addInteraction(p_r, p2_r);
 
   if (sd->display_actions)
     printf("Player %s attacks %s\n", p->name, p2->name);
@@ -561,21 +563,35 @@ void WorldMap::balance() {
 
 void WorldMap::mergePlayersWithinRegions() {
   for (auto region : all_regions) {
-    double num_players = region->num_players;
-    double num_interactions = region->num_player_interactions;
-    double interaction_density = num_players ? num_interactions / num_players: 0.0;
-    tracepoint(trace_LB, tp_region_summary, num_players, num_interactions, region->pos.x, region->pos.y );
+    double num_acquires = region->player_lock_count;
+    double num_contended_acquires = region->player_contention_count;
+    double contention_ratio = region->player_lock_count ? num_contended_acquires / num_acquires : 0.0;
+
+    //double num_players = region->num_players;
+    //double num_interactions = region->num_player_interactions;
+    //double interaction_density = num_players ? num_interactions / num_players: 0.0;
+    //tracepoint(trace_LB, tp_region_summary, num_players, num_interactions, region->pos.x, region->pos.y );
     // Merge if there are few interactions or many interactions.
-    if (0.5 > interaction_density || 1.5 < interaction_density) {
+
+    int region_id = (int) reinterpret_cast<intptr_t>(region);
+
+    tracepoint(trace_LB, tp_contention, region_id, region->player_lock_count, region->player_contention_count);
+
+    // Merge if contention is low enough.
+    if (0.02 >= contention_ratio) {
       for (auto player : region->players) {
         player->mutex = region->player_mutex;
       }
 
-    // Split.
+    // Split otherwise contention is not worth it.
     } else {
       for (auto player : region->players) {
         player->mutex = player->owned_mutex;
       }
     }
+
+    // reset.
+    region->player_lock_count = 0;
+    region->player_contention_count = 0;
   }
 }

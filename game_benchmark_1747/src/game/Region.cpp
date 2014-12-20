@@ -13,12 +13,14 @@ RegionGroup::RegionGroup(RegionGroup *parent_)
   player_mutex = SDL_CreateMutex();
   num_player_interactions = 0;
   parent = parent_;
+  player_lock_count = 0;
+  player_contention_count = 0;
 }
 
 RegionGroup::RegionGroup(int num_regions_, RegionGroup *parent_)
     : num_player_interactions_(ATOMIC_VAR_INIT(0)) {
   num_regions = num_regions_;
-	std::cout <<"new region nb: "<<num_regions<<std::endl;
+	//std::cout <<"new region nb: "<<num_regions<<std::endl;
   if (4 == num_regions) {
     sub_regions[0] = new Region(this);
     sub_regions[1] = new Region(this);
@@ -197,11 +199,11 @@ bool Region_movePlayer(Region* r_old, Region* r_new, Player* p,
   movePlayer_end:
 
   if (r_old < r_new) {
-    SDL_UnlockMutex(r_old->mutex);
     SDL_UnlockMutex(r_new->mutex);
+    SDL_UnlockMutex(r_old->mutex);
   } else if (r_old > r_new) {
-    SDL_UnlockMutex(r_new->mutex);
     SDL_UnlockMutex(r_old->mutex);
+    SDL_UnlockMutex(r_new->mutex);
   } else {
     SDL_UnlockMutex(r_old->mutex);
   }
