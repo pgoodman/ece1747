@@ -156,10 +156,11 @@ def process_trace():
     quest_writer = csv.writer(open("/tmp/quests.dat", "w"))
     num_req_writer = csv.writer(open("/tmp/num_req_%s.dat" % merged, "w"))
     proc_time_writer = csv.writer(open("/tmp/proc_time_%s.dat" % merged, "w"))
-    num_update_writer = csv.writer(open("/tmp/num_update.dat", "w"))
-    sent_time_writer = csv.writer(open("/tmp/sent_time.dat", "w"))
-    stage_time = csv.writer(open("/tmp/stage_time.dat", "w"))
-    stage_breakdown = open("/tmp/stage_breakdown.dat", "w")
+    proc_time_summary_writer = csv.writer(open("/tmp/proc_time_summary_%s.dat" % merged, "w"))
+    num_update_writer = csv.writer(open("/tmp/num_update_%s.dat" % merged, "w"))
+    sent_time_writer = csv.writer(open("/tmp/sent_time_%s.dat" % merged, "w"))
+    stage_time = csv.writer(open("/tmp/stage_time_%s.dat" % merged, "w"))
+    stage_breakdown = open("/tmp/stage_breakdown_%s.dat" % merged, "w")
 
     stage_breakdown.write(",Barrier 3,Stage 3,Barrier 2,Stage 2,Barrier 1,Stage 1\n")
 
@@ -203,6 +204,14 @@ def process_trace():
 
         for time in range(start_time, end_time):
             quest_events[vtid][time] = 0
+
+    proc_times = []
+    for time in range(num_events):
+        for vtid in vtids:
+            it = threads[vtid][time]
+            proc_times.append(it.proc_time)
+
+    print(sum(proc_times) / float(len(proc_times)))
 
     # Dump out all the info. This aggregates across threads.
     for time in range(num_events):
