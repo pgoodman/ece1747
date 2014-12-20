@@ -581,7 +581,9 @@ void WorldMap::mergePlayersWithinRegions() {
     //if (0.02 >= contention_ratio) {
 
     // Merge if there are few interactions or many interactions.
-    if (0.5 > interaction_density || 1.5 < interaction_density) {
+    //if (0.5 > interaction_density || 1.5 < interaction_density) {
+
+    if (!(0.5 > interaction_density || 1.5 < interaction_density)) {
       for (auto player : region->players) {
         player->mutex = region->player_mutex;
       }
